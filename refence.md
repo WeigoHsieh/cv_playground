@@ -17,3 +17,14 @@ https://codertw.com/%E7%A8%8B%E5%BC%8F%E8%AA%9E%E8%A8%80/558303/
 
 ## 大概篇章
 https://www.davidepesce.com/2019/09/06/dice-reader-part-1/
+
+
+## mark label
+https://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html
+
+
+# tensorflow source
+
+
+### dice detection 
+https://hackernoon.com/tensorflow-js-real-time-object-detection-in-10-lines-of-code-baf15dfb95b2
