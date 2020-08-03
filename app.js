@@ -31,7 +31,6 @@
     }
 
 
-
     //HoughCircles(image, method, dp, minDist[, circles[, param1[, param2[, minRadius[, maxRadius]]]]]) -> circles
     const houghCircles = function (src, dst) {
         cv.HoughCircles(src, dst, cv.HOUGH_GRADIENT, 1, 45, 75, 40, 0, 0);
@@ -39,13 +38,13 @@
 
 
     const preImg = function () {
-        const src = cv.imread(srcImgEl);
+        let src = cv.imread(srcImgEl);
         const dst = new cv.Mat();
         let ksize = new cv.Size(3, 3)
         // const thresh = cv.threshold(src,dst, 170, 255, cv.THRESH_BINARY);
         // cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
         // canny(src, dst)
-        // cv.HoughCircles(src, dst, cv.HOUGH_GRADIENT, 1, 45, 75, 40, 0, 0);
+        houghCircles(src, dst, cv.HOUGH_GRADIENT, 1, 45, 75, 40, 0, 0);
         GaussianBlur (src,dst)
         cv.imshow('the-canvas', dst);
 
