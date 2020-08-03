@@ -28,3 +28,7 @@ https://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html
 
 ### dice detection 
 https://hackernoon.com/tensorflow-js-real-time-object-detection-in-10-lines-of-code-baf15dfb95b2
+
+
+## 類似完整咚咚
+https://github.com/nell-byler/dice_detection/blob/master/3_visualize_trained_model_output.ipynb
