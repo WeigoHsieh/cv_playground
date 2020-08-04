@@ -48,9 +48,15 @@ class ImagePretreatmenter:
         return 0
 
 class PatternMatcher:
-    def __init__(self):
-        self.image = []
-
+    def __init__(self,template, origin_img):
+        self.template = template
+        self.origin_img = origin_img
+    def start(self):
+        res = cv.matchTemplate(self.origin_img, self.template, cv.TM_CCOEFF_NORMED)
+    
+    def detect(self):
+        pass
+        
 
     
 
