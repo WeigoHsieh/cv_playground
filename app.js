@@ -42,11 +42,11 @@
         let dst = new cv.Mat();
         let ksize = new cv.Size(3, 3)
         // const thresh = cv.threshold(src,dst, 170, 255, cv.THRESH_BINARY);
-        // cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
-        canny(src, dst)
+        cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
+        // canny(src, dst)
         // houghCircles(src, dst, cv.HOUGH_GRADIENT, 1, 45, 75, 40, 0, 0);
         // GaussianBlur (src,dst)
-        // cv.adaptiveThreshold(src, dst, 200, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 3, 2);
+        cv.adaptiveThreshold(src, dst, 200, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 3, 2);
         
         cv.imshow('the-canvas', dst);
 
