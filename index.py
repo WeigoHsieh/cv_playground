@@ -8,9 +8,41 @@ WORK_DIR = "C:/Users/09080381/Desktop/assignment/1.dice_classification/"
 TEMPLATE_GROUP = WORK_DIR + './dice_groups/'
 
 
+class VideoCapturer:
+    def __init__(self, camera):
+        self.start(camera)
+        self.frame = []
+
+    def start(self, camera):
+        cap = cv.VideoCapture(camera)
+        
+        while(1):
+            _, frame = cap.read()
+            # hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+            # lower_red = np.array([30, 150, 50])
+            # upper_red = np.array([255, 255, 180])
+            # mask = cv.inRange(hsv, lower_red, upper_red)
+            # res = cv.bitwise_and(frame, frame, mask=mask)
+            # kernel = np.ones((15, 15), np.float32)/225
+            cv.imshow('Original', frame)
+            k = cv.waitKey(1)
+            if k == ord('s'):
+                cv.imshow('w',frame)
+                self.frame.append(frame)
+            elif k ==ord('q'):
+                break
+        cv.destroyAllWindows()
+        cap.release()
+            
+        
+    
+        
+        
+
 class Assignment:
     def __init__(self, img_file_path):
         self.img_file_path = img_file_path
+        self.frame = []
         # self._bgr = self.init()
         # self._rgb = self._bgr[:,:,::-1]
         # self._gray = self.get_gray(self._bgr)
@@ -21,6 +53,7 @@ class Assignment:
 
         # self.template_pattern(self._gray,'6')
         self.videoCapture()
+        print(self.frame)
 
     def videoCapture(self):
         cap = cv.VideoCapture(0)    
@@ -34,10 +67,15 @@ class Assignment:
             kernel = np.ones((15, 15), np.float32)/225
             smoothed = cv.filter2D(res, -1, kernel)
             cv.imshow('Original', frame)
-            if cv.waitKey(1) & 0xFF == ord('q'):
+            k = cv.waitKey(1)
+            if k == ord('s'):
+                cv.imshow('w',frame)
+                self.frame.append(frame)
+            elif k ==ord('q'):
                 break
         cv.destroyAllWindows()
         cap.release()
+        
 
     def gamma(self, img, gamma_value):
         return np.power(img/float(np.max(img)), gamma_value)
@@ -103,4 +141,5 @@ class Assignment:
 
 
 if __name__ == "__main__":
-    a = Assignment(WORK_DIR + './diss2.png')
+    # a = Assignment(WORK_DIR + './diss2.png')
+    video = VideoCapturer(0)
