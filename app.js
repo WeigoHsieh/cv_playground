@@ -39,7 +39,7 @@
 
     const preImg = function () {
         let src = cv.imread(srcImgEl);
-        const dst = new cv.Mat();
+        let dst = new cv.Mat();
         let ksize = new cv.Size(3, 3)
         // const thresh = cv.threshold(src,dst, 170, 255, cv.THRESH_BINARY);
         // cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
