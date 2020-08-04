@@ -2,32 +2,46 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 import cv2 as cv
-
+# import tensorflow.examples.tutorials.mnist
 
 WORK_DIR = "C:/Users/09080381/Desktop/assignment/1.dice_classification/"
 TEMPLATE_GROUP = WORK_DIR + './dice_groups/'
 
 class Assignment:
     def __init__(self, img_file_path): 
-       self.img_file_path = img_file_path
-       self._bgr = self.init()
-       self._rgb = self._bgr[:,:,::-1]
-       self._gray = self.get_gray(self._bgr)
+       # self.img_file_path = img_file_path
+       # self._bgr = self.init()
+       # self._rgb = self._bgr[:,:,::-1]
+       # self._gray = self.get_gray(self._bgr)
        
        
+       # self.videoCapture()
+       # preload = self.preload_img()
+       # # self.show_gray(preload)
+       
+       # self.template_pattern(self._gray,'6')
        self.videoCapture()
-       preload = self.preload_img()
-       # self.show_gray(preload)
-       
-       self.template_pattern(preload,'1')
        
        
     def videoCapture (self):
-        # # 先抓攝影機
-        # cap = cv.VideoCapture(0)
-        # if(cap):
-        #     print('OK')
-        pass
+        cap = cv.VideoCapture(0)
+        cap.set(0,480)
+        while(1):
+            frame = cap.read()
+            hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+            lower_red = np.array([30,150,50]) 
+            upper_red = np.array([255,255,180]) 
+            mask = cv.inRange(hsv, lower_red, upper_red) 
+            res = cv.bitwise_and(frame,frame, mask= mask)
+            kernel = np.ones((15,15),np.float32)/225 
+            smoothed = cv.filter2D(res,-1,kernel) 
+            cv.imshow('Original',frame) 
+            if cv.waitKey(1) & 0xFF == ord('q'):
+                break
+        cv.destroyAllWindows() 
+        cap.release()
+      
+
        
     def gamma (self, img, gamma_value):
         return np.power(img/float(np.max(img)), gamma_value)
@@ -54,55 +68,27 @@ class Assignment:
             cv.THRESH_BINARY,11,2)
             
             
-    def matchTemplate(img,templ):
-        # 紀錄模板尺寸
-        h, w = templ.shape[:2]
-        res = cv.matchTemplate(img, templ, cv.TM_CCOEFF_NORMED)
-        threshold = 0.8
-        loc = np.where(res >= threshold)  # 匹配程度大於%80的坐標y,x
-        for pt in zip(*loc[::-1]):  # *號表示可選參數
-            right_bottom = (pt[0] + w, pt[1] + h)
-            cv.rectangle(img_rgb, pt, right_bottom, (0, 0, 255), 2)
+    def matchTemplate(self,img,templ):
+       pass
         
-        
+        # TEMPLATE_GROUP+'./dice_' + string_number+ '.png'
     def template_pattern(self,img,string_number):
-        template = cv.imread(TEMPLATE_GROUP+'./dice_' + string_number+ '.png',0)
-        matchTemplate(img,template)
+        TEMPLATE = cv.imread('ref.png',0)
+        plt.imshow(TEMPLATE)
+        print(TEMPLATE.shape)
+        # self.matchTemplate(img,TEMPLATE)
+        # 紀錄模板尺寸
         
-        
-        # 會得到座標(四個角)
-        res = cv.matchTemplate(img, template, cv.TM_CCOEFF_NORMED)
-        threshold = 0.9
-        
-        img2 = img.copy()
-        
-        
-        
-        #推算座標
-        
-        min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
-        top_left = max_loc
-        bottom_right = (top_left[0] + w, top_left[1] + h)
-        cv.rectangle(img,top_left, bottom_right, 255, 2)
-        
-        
-        plt.subplot(121),plt.imshow(res,cmap = 'gray')
-        plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
-        plt.subplot(122),plt.imshow(img)
-        plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
-        
-        
-        # plt.imshow(img)
-        
-        # for pt in zip(*loc[::-1]): 
-        #     cv.rectangle(self._rgb, pt, (pt[0] + w, pt[1] + h), (7,249,151), 2)
-        #     #顯示圖像
-        #     plt.imshow(self._rgb)
-        #     # cv.waitKey(0)
-        #     # cv.destroyAllWindows()
-     
-
-
+        w, h = TEMPLATE.shape[::-1]
+        print(w,h)
+        # 做模型比對(出來的值為ndarray float32)
+        res = cv.matchTemplate(img, TEMPLATE, cv.TM_CCOEFF_NORMED)
+        threshold = 0.8
+        loc = np.where(res >= threshold) 
+        for pt in zip(*loc[::-1]):  # *號表示可選參數
+            cv.rectangle(self._rgb, pt, (pt[0] + w, pt[1] + h), (0,255,255), 2) 
+        cv.imshow('Detected',self._rgb)
+ 
         
         
     def otsu (self,img):
@@ -116,7 +102,7 @@ class Assignment:
         plt.imshow(img,cmap='gray')
     
     def preload_img (self):
-        #高斯模糊降噪音
+        #高斯模糊降噪
         gau = self.gaussianBlur(self._gray)
         adaptive = self.adaptiveThreshold(gau)
         # otsu = self.otsu(self._gray)
