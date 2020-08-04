@@ -38,3 +38,8 @@ https://hackernoon.com/tensorflow-js-real-time-object-detection-in-10-lines-of-c
 
 ## 類似完整咚咚
 https://github.com/nell-byler/dice_detection/blob/master/3_visualize_trained_model_output.ipynb
+
+
+## tensorflow字體辨識
+
+https://www.youtube.com/watch?v=y1ZrOs9s2QA
