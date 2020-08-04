@@ -10,12 +10,14 @@ TEMPLATE_GROUP = WORK_DIR + './dice_groups/'
 
 class VideoCapturer:
     def __init__(self, camera):
-        self.start(camera)
         self.frame = []
+        self.start(camera)
+
+        print(self.frame)
 
     def start(self, camera):
         cap = cv.VideoCapture(camera)
-        
+
         while(1):
             _, frame = cap.read()
             # hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
@@ -27,17 +29,30 @@ class VideoCapturer:
             cv.imshow('Original', frame)
             k = cv.waitKey(1)
             if k == ord('s'):
-                cv.imshow('w',frame)
+                cv.imshow('w', frame)
                 self.frame.append(frame)
-            elif k ==ord('q'):
+            elif k == ord('q'):
                 break
         cv.destroyAllWindows()
         cap.release()
-            
-        
+
+
+class ImagePretreatmenter:
+    def __init__(self, img_list):
+        self._img_list = img_list
+        self.start()
+
+    def start(self):
+        for list in self._img_list:
+            cv.imshow('',list)
+        return 0
+
+class PatternMatcher:
+    def __init__(self):
+        self.image = []
+
+
     
-        
-        
 
 class Assignment:
     def __init__(self, img_file_path):
@@ -55,27 +70,26 @@ class Assignment:
         self.videoCapture()
         print(self.frame)
 
-    def videoCapture(self):
-        cap = cv.VideoCapture(0)    
-        while(1):
-            _, frame = cap.read()
-            hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-            lower_red = np.array([30, 150, 50])
-            upper_red = np.array([255, 255, 180])
-            mask = cv.inRange(hsv, lower_red, upper_red)
-            res = cv.bitwise_and(frame, frame, mask=mask)
-            kernel = np.ones((15, 15), np.float32)/225
-            smoothed = cv.filter2D(res, -1, kernel)
-            cv.imshow('Original', frame)
-            k = cv.waitKey(1)
-            if k == ord('s'):
-                cv.imshow('w',frame)
-                self.frame.append(frame)
-            elif k ==ord('q'):
-                break
-        cv.destroyAllWindows()
-        cap.release()
-        
+    # def videoCapture(self):
+    #     cap = cv.VideoCapture(0)
+    #     while(1):
+    #         _, frame = cap.read()
+    #         hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+    #         lower_red = np.array([30, 150, 50])
+    #         upper_red = np.array([255, 255, 180])
+    #         mask = cv.inRange(hsv, lower_red, upper_red)
+    #         res = cv.bitwise_and(frame, frame, mask=mask)
+    #         kernel = np.ones((15, 15), np.float32)/225
+    #         smoothed = cv.filter2D(res, -1, kernel)
+    #         cv.imshow('Original', frame)
+    #         k = cv.waitKey(1)
+    #         if k == ord('s'):
+    #             cv.imshow('w', frame)
+    #             self.frame.append(frame)
+    #         elif k == ord('q'):
+    #             break
+    #     cv.destroyAllWindows()
+    #     cap.release()
 
     def gamma(self, img, gamma_value):
         return np.power(img/float(np.max(img)), gamma_value)
@@ -143,3 +157,5 @@ class Assignment:
 if __name__ == "__main__":
     # a = Assignment(WORK_DIR + './diss2.png')
     video = VideoCapturer(0)
+    imagePretreatmenter = ImagePretreatmenter(video.frame)
+    print()
