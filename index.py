@@ -1,6 +1,6 @@
 # import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import cv2 as cv
 # import tensorflow.examples.tutorials.mnist
 
@@ -146,14 +146,10 @@ class DiceImageTrainer:
         self._pretreatmenter = pretreatmenter
     
 
-
-
 if __name__ == "__main__":
-    # video = VideoCapturer(0)
-    # imagePretreatmenter = ImagePretreatmenter(video.frame)
-    patternMatcher = PatternMatcherTest(TEMPLATE_GROUP + './dice_4.png', WORK_DIR + './disss.png')
-   
-    
+    video = VideoCapturer(0)
+    imagePretreatmenter = ImagePretreatmenter(video.frame)
+    # patternMatcher = PatternMatcherTest(TEMPLATE_GROUP + './dice_ref.png', WORK_DIR + './diss2.png')
+    # a = cv.imread(TEMPLATE_GROUP + './dice_ref.png')
+    # cv.imshow('',a)
     # cv2.rectangle(img, 左上(20, 60), 右下(120, 160), 顏色(0, 255, 0), 粗細2)
-   
-    print()
