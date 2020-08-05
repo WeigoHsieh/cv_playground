@@ -14,7 +14,6 @@ class VideoCapturer:
         self.frame = []
         self.start(camera)
 
-        print(self.frame)
 
     def start(self, camera):
         cap = cv.VideoCapture(camera)
@@ -29,14 +28,12 @@ class VideoCapturer:
                 
                 self.frame.append(frame)
                 # self.download(frame)
-                print(len(self.frame))
-                print(self.num)
-        
+             
             elif k == ord('q'):
                 break
         cv.destroyAllWindows()
         cap.release()
-        print(self.frame)
+      
         
     def download(self,frame):
         cv.imwrite(DICE_WRITE_DIR + str(self.num)+'.png', frame)
@@ -49,9 +46,7 @@ class VideoCapturer:
 class ImagePretreatmenter:
     def __init__(self, img_list):
         self.after_pretreatment_list = []
-        print('---進入圖像前處理---')
         self._img_list = img_list
-        print(self._img_list)
         self.start()
 
     def start(self):
@@ -72,7 +67,7 @@ class ImagePretreatmenter:
     
     #邊緣檢測
     def canny(self,img):
-        return cv.Canny(img,1,5)
+        return cv.Canny(img,85,125)
     
     #高斯模糊
     def GaussianBlur(self,img):
@@ -114,141 +109,51 @@ class PatternMatcher:
         self.method = cv.TM_CCOEFF_NORMED
         
     def templateMatching(self):
-        res = match(self.method)
+        res = self.match(self.method)
         return res
     def match(self,method):
         return cv.matchTemplate(self.gray, self.template, method)
+    def detect(self):
+        pass
     
 
 class PatternMatcherTest:
     def __init__(self,template, origin_img):
-        self.template = cv.imread(template)
+        self.template = cv.imread(template,0)
         self.origin_img = cv.imread(origin_img)
         self.gray = cv.cvtColor(self.origin_img, cv.COLOR_RGB2GRAY)
+        self.threshold = 0.8
         self.start()
         
         
     def start(self):
+        self.detect(self.gray,self.template)
+        cv.imshow('',self.origin_img)
         
-        res = self.detect(self.origin_img, self.template)
-        print( type(res) )
-    
-    def detect(self,origin,templ):
+    def detect(self,origin_gray,templ):
         # //matchTemplate會回傳座標
-        return cv.matchTemplate(self.gray, self.template, cv.TM_CCOEFF_NORMED)
-    
+        # return
+        w,h = self.template.shape[::-1]
+        res = cv.matchTemplate(self.gray, self.template, cv.TM_CCOEFF_NORMED)
+        loc = np.where (res >= self.threshold)
+        for pt in zip(*loc[::-1]):
+            cv.rectangle(self.origin_img, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+      
+        
     
 class DiceImageTrainer: 
     def __init__(self,pretreatmenter):
         self._pretreatmenter = pretreatmenter
-        
-    def setup():
-        pass
-
     
 
-class Assignment:
-    def __init__(self, img_file_path):
-        self.img_file_path = img_file_path
-        self.frame = []
-        self._bgr = self.init()
-        self._rgb = self._bgr[:,:,::-1]
-        self._gray = self.get_gray(self._bgr)
-
-        self.videoCapture()
-        preload = self.preload_img()
-        self.show_gray(preload)
-
-        self.template_pattern(self._gray,'6')
-        self.videoCapture()
-        print(self.frame)
-
-    def videoCapture(self):
-        cap = cv.VideoCapture(0)
-        while(1):
-            _, frame = cap.read()
-            hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-            lower_red = np.array([30, 150, 50])
-            upper_red = np.array([255, 255, 180])
-            mask = cv.inRange(hsv, lower_red, upper_red)
-            res = cv.bitwise_and(frame, frame, mask=mask)
-            kernel = np.ones((15, 15), np.float32)/225
-            smoothed = cv.filter2D(res, -1, kernel)
-            cv.imshow('Original', frame)
-            k = cv.waitKey(1)
-            if k == ord('s'):
-                cv.imshow('w', frame)
-                self.frame.append(frame)
-            elif k == ord('q'):
-                break
-        cv.destroyAllWindows()
-        cap.release()
-
-    def gamma(self, img, gamma_value):
-        return np.power(img/float(np.max(img)), gamma_value)
-
-    def get_gray(self, img):
-        return cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-
-    def init(self):
-        return cv.imread(self.img_file_path)
-
-    def init_gray(self):
-        return cv.imread(self.img_file_path)
-
-    def canny(self, img):
-        return cv.Canny(img, 100, 200)
-
-    def show(self, img):
-        plt.imshow(img)
-
-    def adaptiveThreshold(self, img):
-        return cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                    cv.THRESH_BINARY, 11, 2)
-
-    def matchTemplate(self, img, templ):
-        pass
-
-        # TEMPLATE_GROUP+'./dice_' + string_number+ '.png'
-    def template_pattern(self, img, string_number):
-        TEMPLATE = cv.imread('ref.png', 0)
-        plt.imshow(TEMPLATE)
-        print(TEMPLATE.shape)
-        # self.matchTemplate(img,TEMPLATE)
-        # 紀錄模板尺寸
-
-        w, h = TEMPLATE.shape[::-1]
-        print(w, h)
-        # 做模型比對(出來的值為ndarray float32)
-        res = cv.matchTemplate(img, TEMPLATE, cv.TM_CCOEFF_NORMED)
-        threshold = 0.8
-        loc = np.where(res >= threshold)
-        for pt in zip(*loc[::-1]):  # *號表示可選參數
-            cv.rectangle(
-                self._rgb, pt, (pt[0] + w, pt[1] + h), (0, 255, 255), 2)
-        cv.imshow('Detected', self._rgb)
-
-    def otsu(self, img):
-        blur = self.gaussianBlur(img)
-        return cv.threshold(blur, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
-
-    def gaussianBlur(self, img):
-        return cv.GaussianBlur(img, (5, 5), 0)
-
-    def show_gray(self, img):
-        plt.imshow(img, cmap='gray')
-
-    def preload_img(self):
-        # 高斯模糊降噪
-        gau = self.gaussianBlur(self._gray)
-        adaptive = self.adaptiveThreshold(gau)
-        # otsu = self.otsu(self._gray)
-        # 把原圖灰階後做成canny
-        return adaptive
 
 
 if __name__ == "__main__":
-    video = VideoCapturer(0)
-    imagePretreatmenter = ImagePretreatmenter(video.frame)
-    # patternMatcher = PatternMatcher(TEMPLATE_GROUP + './dice_5.png', WORK_DIR + './diss2.png')
+    # video = VideoCapturer(0)
+    # imagePretreatmenter = ImagePretreatmenter(video.frame)
+    patternMatcher = PatternMatcherTest(TEMPLATE_GROUP + './dice_4.png', WORK_DIR + './disss.png')
+   
+    
+    # cv2.rectangle(img, 左上(20, 60), 右下(120, 160), 顏色(0, 255, 0), 粗細2)
+   
     print()
