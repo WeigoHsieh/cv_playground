@@ -4,6 +4,17 @@ https://blog.gtwang.org/programming/opencv-webcam-video-capture-and-file-write-t
 
 ## openCV 參考圖像處理參考資料
 
+### 巴哈
+
+https://forum.gamer.com.tw/C.php?bsn=60292&snA=4973
+
+###  keyword: blob dection
+
+http://brightguo.com/blob-detection-using-opencv-python-c/
+
+### 侵蝕跟膨脹
+
+https://jason-chen-1992.weebly.com/home/-morphology
 
 ### tensorflow
 

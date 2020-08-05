@@ -16,7 +16,7 @@ class VideoCapturer:
 
 
     def start(self, camera):
-        cap = cv.VideoCapture(camera)
+        cap = cv.VideoCapture(camera,cv.CAP_DSHOW)
         self.num = 0
         while(1):
             _, frame = cap.read()
