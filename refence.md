@@ -33,6 +33,9 @@ https://www.davidepesce.com/2019/09/06/dice-reader-part-1/
 ## mark label
 https://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html
 
+## Edge Based pattern matching
+https://www.codeproject.com/Articles/99457/Edge-Based-Template-Matching
+
 
 # tensorflow source
 

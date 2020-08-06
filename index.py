@@ -185,59 +185,64 @@ class PatternMatcherTest:
 
 # # Show keypoints
 # cv2.imshow("Keypoints", im_with_keypoints)
-# cv2.waitKey(0)       
+# cv2.waitKey(0)
+
+
+
+
+        
         
     def start(self):
-        # self.detect(self.gray,self.template)
+        self.detect(self.gray,self.template)
         print(self.template,self.gray)
         # cv.imshow('',self.origin_img)
         
     def detect(self,origin_gray,templ):
+        pass
         # //matchTemplate會回傳座標
         # return
-        w,h = templ.shape[::-1]
-        res = cv.matchTemplate(origin_gray, templ, cv.TM_CCOEFF_NORMED)
-        loc = np.where (res >= self.threshold)
-        for pt in zip(*loc[::-1]):
-            cv.rectangle(self.origin_gray, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        # w,h = templ.shape[:-1]
+        # res = cv.matchTemplate(origin_gray, templ, cv.TM_CCOEFF_NORMED)
+        # loc = np.where (res >= self.threshold)
+        # for pt in zip(*loc[:-1]):
+        #     cv.rectangle(self.origin_gray, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
       
         
     
-# class DiceImageTrainer: 
-#     def __init__(self,pretreatmenter):
-#         self._pretreatmenter = pretreatmenter
+class DiceImageTrainer: 
+    def __init__(self,pretreatmenter):
+        self._pretreatmenter = pretreatmenter
     
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
     
-#     def destory():
-#         cv.waitkey()
-#         cv.destroyAllWindows()
+    def destory():
+        cv.waitkey()
+        cv.destroyAllWindows()
     
-#     def patternmatch_test():
-#         pass
+    def patternmatch_test():
+        pass
     
-#     def preload_test():
-#         video = VideoCapturer(0)
-#         imagePretreatmenter = ImagePretreatmenter(video.frame)
-#         return imagePretreatmenter
+    def preload_test():
+        video = VideoCapturer(0)
+        imagePretreatmenter = ImagePretreatmenter(video.frame)
         
-#     def template_preload_saobel():
-#         for i in range(6):
-#             TEMPLATE_GROUP_DIR = TEMPLATE_GROUP +'dice_'+ str(i+1) + '.png'
-#             print(TEMPLATE_GROUP_DIR,'\n')
-#             img = cv.imread(TEMPLATE_GROUP)
-#             # cv.imshow('',img)
-#         # destory()
+    def template_preload_saobel():
+        for i in range(6):
+            TEMPLATE_GROUP_DIR = TEMPLATE_GROUP +'dice_'+ str(i+1) + '.png'
+            print(TEMPLATE_GROUP_DIR,'\n')
+            img = cv.imread(TEMPLATE_GROUP)
+            # cv.imshow('',img)
+        # destory()
                 
             
             
-    # preload_test()
+    preload_test()
     # template_preload_saobel()
     
     # video = VideoCapturer(0)
     # imagePretreatmenter = ImagePretreatmenter(video.frame)
-    patternMatcher = PatternMatcherTest(TEMPLATE_GROUP + './blob.png', WORK_DIR + 'disss.png')
+    # patternMatcher = PatternMatcherTest(WORK_DIR + './blob.png', WORK_DIR + 'origin.png')
     cv.waitKey(0)
     cv.destroyAllWindows()
     # a = cv.imread(TEMPLATE_GROUP + './dice_ref.png')
