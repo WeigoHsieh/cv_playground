@@ -96,13 +96,13 @@ for contour in contours:
  	# count the number of contours
  	pip_contours, subhierarchy = cv2.findContours(subimage.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
  	for pip in pip_contours:
-		# count pips only if they are of a certain size
-		if cv2.contourArea(pip) >= MIN_PIP_AREA:
- 			pips = pips + 1
+        # count pips only if they are of a certain size
+	    if cv2.contourArea(pip) >= MIN_PIP_AREA:
+ 		    pips +=  1
 		
  	# log erroneous dice
  	if pips > 6 or pips == 0:
-		wrongdice = wrongdice + 1
+	    wrongdice = wrongdice + 1
 		print (pips)
  	else:
 		dice_results[pips - 1] = dice_results[pips - 1] + 1
