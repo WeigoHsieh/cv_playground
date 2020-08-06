@@ -292,11 +292,18 @@ if __name__ == "__main__":
             img = cv.imread(TEMPLATE_GROUP)
             # cv.imshow('',img)
         # destory()
-                
+
+
+    def testing_example_pic():
+        imgs = []
+        for i in range(6):
+            imgs.append(cv.imread(WORK_DIR + 'example' + str(i) + '.png'))
+        print(imgs)
+        return imgs
+        
     
-            
-            
-    preload_test()
+    testing_example_pic()            
+    # preload_test()
     # template_preload_saobel()
     
     # video = VideoCapturer(0)
