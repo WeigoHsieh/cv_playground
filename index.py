@@ -49,6 +49,7 @@ class ImagePretreatmenter:
         self._img_list = img_list
         self.start()
 
+
     def start(self):
         num = 0
         for i in self.processing():
@@ -60,6 +61,16 @@ class ImagePretreatmenter:
              cv.waitKey()
              cv.destroyAllWindows()
         
+    def medianBlur(self,img):
+        return cv.medianBlur(img, 5)
+    
+
+    def diceblock(self,img):
+        blur = self.medianBlur(img)
+        red = cv.split(blur)[2]
+        dice_blocks = cv.threshold(red, 209, 255, 1) #185 --> 235
+        in_block = 255 - dice_blocks [1]
+        return in_block
         
     #自適應高斯模糊濾波器    
     def adaptiveGaussianThresHolding(self,img):
@@ -68,6 +79,8 @@ class ImagePretreatmenter:
     def gray(self,img):
         return cv.cvtColor(img,cv.COLOR_BGR2GRAY)
     
+    
+    #索伯
     def sobel (self,img):
         x = cv.Sobel(img, cv.CV_16S, 1, 0)
         y = cv.Sobel(img, cv.CV_16S, 0, 1)
@@ -80,7 +93,7 @@ class ImagePretreatmenter:
     
     #邊緣檢測
     def canny(self,img):
-        return cv.Canny(img,200,400)
+        return cv.Canny(img,15,15)
     
     #高斯模糊
     def GaussianBlur(self,img):
@@ -113,7 +126,7 @@ class ImagePretreatmenter:
         # cv.imshow('',binaryImg)
         canny = self.canny(gau)
         hou = self.houghCircle(img)
-        # sobel = self.sobel(gray)
+        sobel = self.sobel(gray)
         # method = cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
         cnts, _ = cv.findContours(canny.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         clone = img.copy()
@@ -136,11 +149,11 @@ class ImagePretreatmenter:
        # cv.waitKey(0)
        # cv.destroyAllWindows()
        for i in self._img_list:
-         gray = self.gray(i)    
-         sobel = self.sobel(gray)
-         contours = self.contours(i)
-        
-         yield contours
+         # gray = self.gray(i)    
+         # sobel = self.sobel(gray)
+         # contours = self.contours(i)
+         dice_blocks = self.diceblock(i)
+         yield dice_blocks
     
     #圖片裁減   
     def cut(self, img,x,y,w,h):
