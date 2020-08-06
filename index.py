@@ -57,8 +57,9 @@ class ImagePretreatmenter:
              cv.imshow('Photo:'+str(num),i)
              self.after_pretreatment_list.append(i)
              num +=1
-        cv.waitKey()
-        cv.destroyAllWindows()
+             cv.waitKey()
+             cv.destroyAllWindows()
+        
         
     #自適應高斯模糊濾波器    
     def adaptiveGaussianThresHolding(self,img):
@@ -79,11 +80,11 @@ class ImagePretreatmenter:
     
     #邊緣檢測
     def canny(self,img):
-        return cv.Canny(img,85,125)
+        return cv.Canny(img,200,400)
     
     #高斯模糊
     def GaussianBlur(self,img):
-        return cv.GaussianBlur(img,(3,3),0)
+        return cv.GaussianBlur(img,(9,9),0)
     
     # 拉普拉斯算子
     def lapl(self,img):
@@ -94,15 +95,53 @@ class ImagePretreatmenter:
          kernel = np.array([[0, -1, 0], [-1, 5.5, -1], [0, -1, 0]], np.float32)
          dst = cv.filter2D(img, -1, kernel=kernel)
          return dst
+     
+    # 霍夫曼圓形檢測(灰值)
+    def houghCircle(self,img):
+        gray = self.gray(img)
+        gau = self.GaussianBlur(gray)
+        circles = cv.HoughCircles(gau,cv.HOUGH_GRADIENT,1,12,
+                                  param1=50,param2=30,minRadius=20,maxRadius=40)
+        return circles
+     
+        
+     #輪廓檢測(需要灰、模糊、或者二值化)
+    def contours (self,img):
+        gray = self.gray(img)
+        gau = self.GaussianBlur(gray)
+        # binaryImg = self.sobel(gau)
+        # cv.imshow('',binaryImg)
+        canny = self.canny(gau)
+        hou = self.houghCircle(img)
+        # sobel = self.sobel(gray)
+        # method = cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
+        cnts, _ = cv.findContours(canny.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+        clone = img.copy()
+        cv.drawContours(clone,cnts,-1,(0,255,0),2)
+        count = 0
+        ares_avrg = 0
+        for cont in cnts:
+            ares = cv.contourArea(cont)#計算包圍性狀的面積
+            if ares<50:   #過濾面積小於10的形狀
+                continue
+            count+=1    #總體計數加1
+            ares_avrg+=ares
+        
+        print('總共有：' + str(count) +'點')
+        
+        return clone
+
     
     def processing(self):
+       # cv.waitKey(0)
+       # cv.destroyAllWindows()
        for i in self._img_list:
          gray = self.gray(i)    
          sobel = self.sobel(gray)
-         
-         self.sobel = sobel
-         yield sobel
+         contours = self.contours(i)
         
+         yield contours
+    
     #圖片裁減   
     def cut(self, img,x,y,w,h):
         crop_img = img[y:y+h,x:x+w]
@@ -154,7 +193,7 @@ class PatternMatcher:
     def mark(self,origin_gray,templ):
         # //matchTemplate會回傳座標
         # return
-        w,h = templ.shape[:-1]
+        w,h = templ.shape[::-1]
         res = cv.matchTemplate(origin_gray, templ, cv.TM_CCOEFF_NORMED)
         loc = np.where (res >= self.threshold)
         for pt in zip(*loc[::-1]):
@@ -201,10 +240,10 @@ class PatternMatcherTest:
         pass
         # //matchTemplate會回傳座標
         # return
-        # w,h = templ.shape[:-1]
+        # w,h = templ.shape[::-1]
         # res = cv.matchTemplate(origin_gray, templ, cv.TM_CCOEFF_NORMED)
         # loc = np.where (res >= self.threshold)
-        # for pt in zip(*loc[:-1]):
+        # for pt in zip(*loc[::-1]):
         #     cv.rectangle(self.origin_gray, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
       
         
@@ -235,6 +274,7 @@ if __name__ == "__main__":
             # cv.imshow('',img)
         # destory()
                 
+    
             
             
     preload_test()

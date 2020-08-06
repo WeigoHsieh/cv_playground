@@ -1,5 +1,5 @@
 
-## videoCapture 參考資料
+### videoCapture 參考資料
 https://blog.gtwang.org/programming/opencv-webcam-video-capture-and-file-write-tutorial/
 
 ## openCV 參考圖像處理參考資料
@@ -16,9 +16,10 @@ http://brightguo.com/blob-detection-using-opencv-python-c/
 
 https://jason-chen-1992.weebly.com/home/-morphology
 
-### tensorflow
 
-https://towardsdatascience.com/a-two-stage-stage-approach-to-counting-dice-values-with-tensorflow-and-pytorch-e5620e5fa0a3
+### tilt
+
+https://stackoverflow.com/questions/33497736/opencv-adjusting-photo-with-skew-angle-tilt
 
 
 ## 霍夫圓環 
@@ -48,6 +49,11 @@ https://medium.com/@yanweiliu/python%E5%BD%B1%E5%83%8F%E8%BE%A8%E8%AD%98%E7%AD%8
 
 ### dice detection 
 https://hackernoon.com/tensorflow-js-real-time-object-detection-in-10-lines-of-code-baf15dfb95b2
+
+
+### tensorflow
+
+https://towardsdatascience.com/a-two-stage-stage-approach-to-counting-dice-values-with-tensorflow-and-pytorch-e5620e5fa0a3
 
 
 ## 類似完整咚咚
