@@ -5,6 +5,7 @@ import cv2 as cv
 # import tensorflow.examples.tutorials.mnist
 
 WORK_DIR = "C:/Users/09080381/Desktop/assignment/1.dice_classification/"
+WORK_DIR2 = "C:/Users/Administrator/cv-playground/"
 TEMPLATE_GROUP = WORK_DIR + 'dice_groups/'
 DICE_WRITE_DIR = WORK_DIR + 'diceing/5/'
 
@@ -153,10 +154,11 @@ class ImagePretreatmenter:
        # cv.waitKey(0)
        # cv.destroyAllWindows()
        for i in self._img_list:
-         # gray = self.gray(i)    
+         gray = self.gray(i)    
          # sobel = self.sobel(gray)
          # contours = self.contours(i)
          # dice_blocks = self.diceblock(i)
+         canny = self.canny(gray)
          gray = self.gray(i)
          otsu = self.otsu(gray)
          yield otsu
@@ -243,13 +245,7 @@ class PatternMatcherTest:
 
 # # Show keypoints
 # cv2.imshow("Keypoints", im_with_keypoints)
-# cv2.waitKey(0)
-
-
-
-
-        
-        
+# cv2.waitKey(0)      
     def start(self):
         self.detect(self.gray,self.template)
         print(self.template,self.gray)
@@ -296,11 +292,16 @@ if __name__ == "__main__":
 
     def testing_example_pic():
         imgs = []
-        for i in range(6):
-            imgs.append(cv.imread(WORK_DIR + 'example' + str(i) + '.png'))
-        print(imgs)
+        for i in range(3):
+            res = cv.imread(WORK_DIR2 + 'exam_' + str(i+1) + '.png')
+            imgs.append(res)
         return imgs
-        
+    
+
+
+    imagePretreatmenter = ImagePretreatmenter(testing_example_pic())
+
+
     
     testing_example_pic()            
     # preload_test()
