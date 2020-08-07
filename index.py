@@ -97,7 +97,7 @@ class ImagePretreatmenter:
     
     #邊緣檢測
     def canny(self,img):
-        return cv.Canny(img,15,15)
+        return cv.Canny(img,50,100)
     
     #高斯模糊
     def GaussianBlur(self,img):
@@ -155,11 +155,13 @@ class ImagePretreatmenter:
        for i in self._img_list:
          # gray = self.gray(i)    
          # sobel = self.sobel(gray)
-         # contours = self.contours(i)
+         contours = self.contours(i)
          # dice_blocks = self.diceblock(i)
+         # canny = self.canny(i)
          gray = self.gray(i)
          otsu = self.otsu(gray)
-         yield otsu
+         
+         yield contours
     
     #圖片裁減   
     def cut(self, img,x,y,w,h):
