@@ -27,7 +27,6 @@ class VideoCapturer:
                 cv.imshow('w', frame)
 
                 self.frame.append(frame)
-                # self.download(frame)
 
             elif k == ord('q'):
                 break
@@ -129,12 +128,7 @@ class ImagePretreatmenter:
     def contours(self, img):
         gray = self.gray(img)
         gau = self.GaussianBlur(gray)
-        # binaryImg = self.sobel(gau)
-        # cv.imshow('',binaryImg)
         canny = self.canny(gau)
-        hou = self.houghCircle(img)
-        sobel = self.sobel(gray)
-        # method = cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
         cnts, _ = cv.findContours(
             canny.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         clone = img.copy()
@@ -153,17 +147,8 @@ class ImagePretreatmenter:
         return clone
 
     def processing(self):
-        # cv.waitKey(0)
-        # cv.destroyAllWindows()
         for i in self._img_list:
-              gray = self.gray(i)
-            #  # sobel = self.sobel(gray)
-            #  # contours = self.contours(i)
-            #  # dice_blocks = self.diceblock(i)
-            #  canny = self.canny(gray)
-            #  gray = self.gray(i)
-            #  otsu = self.otsu(gray)
-            # blob = self.blob_dection(i)
+           
             con = self.contours(i)
             yield con
 
@@ -239,20 +224,7 @@ class PatternMatcherTest:
 
     def blob_dection(self, img):
         pass
-#         detector = cv2.SimpleBlobDetector()
-#         keypoints = detector.detect(img)
 
-
-# # Detect blobs.
-
-
-# # Draw detected blobs as red circles.
-# # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
-# im_with_keypoints = cv2.drawKeypoints(im, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-# # Show keypoints
-# cv2.imshow("Keypoints", im_with_keypoints)
-# cv2.waitKey(0)
 
     def start(self):
         self.detect(self.gray, self.template)
@@ -293,8 +265,7 @@ if __name__ == "__main__":
             TEMPLATE_GROUP_DIR = TEMPLATE_GROUP + 'dice_' + str(i+1) + '.png'
             print(TEMPLATE_GROUP_DIR, '\n')
             img = cv.imread(TEMPLATE_GROUP)
-            # cv.imshow('',img)
-        # destory()
+         
 
     def testing_example_pic():
         imgs = []
@@ -306,14 +277,7 @@ if __name__ == "__main__":
     imagePretreatmenter = ImagePretreatmenter(testing_example_pic())
 
     testing_example_pic()
-    # preload_test()
-    # template_preload_saobel()
 
-    # video = VideoCapturer(0)
-    # imagePretreatmenter = ImagePretreatmenter(video.frame)
-    # patternMatcher = PatternMatcherTest(WORK_DIR + './blob.png', WORK_DIR + 'origin.png')
     cv.waitKey(0)
     cv.destroyAllWindows()
-    # a = cv.imread(TEMPLATE_GROUP + './dice_ref.png')
-    # cv.imshow('',a)
     # cv2.rectangle(img, 左上(20, 60), 右下(120, 160), 顏色(0, 255, 0), 粗細2)
