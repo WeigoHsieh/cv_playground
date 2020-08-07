@@ -156,16 +156,16 @@ class ImagePretreatmenter:
         # cv.waitKey(0)
         # cv.destroyAllWindows()
         for i in self._img_list:
-            #  gray = self.gray(i)
+              gray = self.gray(i)
             #  # sobel = self.sobel(gray)
             #  # contours = self.contours(i)
             #  # dice_blocks = self.diceblock(i)
             #  canny = self.canny(gray)
             #  gray = self.gray(i)
             #  otsu = self.otsu(gray)
-            blob = self.blob_dection(i)
+            # blob = self.blob_dection(i)
             con = self.contours(i)
-            yield blob
+            yield con
 
     # 圖片裁減
     def cut(self, img, x, y, w, h):
