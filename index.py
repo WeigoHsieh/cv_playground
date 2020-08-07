@@ -47,7 +47,9 @@ class ImagePretreatmenter:
     def __init__(self, img_list):
         self.after_pretreatment_list = []
         self._img_list = img_list
+        self.ares = []
         self.start()
+        
 
 
     def start(self):
@@ -97,7 +99,7 @@ class ImagePretreatmenter:
     
     #邊緣檢測
     def canny(self,img):
-        return cv.Canny(img,50,100)
+        return cv.Canny(img,50,95)
     
     #高斯模糊
     def GaussianBlur(self,img):
@@ -122,6 +124,15 @@ class ImagePretreatmenter:
         return circles
      
         
+    def pip_contourfy(self):
+         dice_1 = cv.imread(TEMPLATE_GROUP+ 'dice_1.png')
+         gray = self.gray(dice_1)
+         gau = self.GaussianBlur(gray)
+         template = self.canny(gau)
+         cnts, _ = cv.findContours(template, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+         return cnts
+         
+        
      #輪廓檢測(需要灰、模糊、或者二值化)
     def contours (self,img):
         gray = self.gray(img)
@@ -133,19 +144,30 @@ class ImagePretreatmenter:
         sobel = self.sobel(gray)
         # method = cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
         cnts, _ = cv.findContours(canny.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+        
+        for i, cnt in enumerate(cnts):
+            print(i)
+            print(len(cnt))
+            ret = cv.matchShapes(cnt,self.pip_contourfy()[i+1],1,0.0)
+            # if ret < 0.1:
+                # print(ret)
+        
         clone = img.copy()
         cv.drawContours(clone,cnts,-1,(0,255,0),2)
         count = 0
         ares_avrg = 0
         for cont in cnts:
+            arc = cv.arcLength(cont,True)
             ares = cv.contourArea(cont)#計算包圍性狀的面積
-            if ares<50:   #過濾面積小於10的形狀
+            self.ares.append(arc)
+            if ares<55:   #過濾面積小於50的形狀
                 continue
             count+=1    #總體計數加1
             ares_avrg+=ares
         
         print('總共有：' + str(count) +'點')
-        
+        print('---')
+        print(len(self.ares))
         return clone
 
     
@@ -205,6 +227,15 @@ class PatternMatcher:
         return cv.matchTemplate(self.gray, self.templ, method)
     def detect(self):
         pass
+    
+    def monent (self,contours):
+        for i in contours.size():
+            yield cv.monents(contours[i],False)
+            
+            
+            
+    def shapeMatching(self, origin, templ):
+        return cv.matchShapes(origin,templ,1,0.0)
     
     def test(self):
         self.templ = cv.imread(WORK_DIR + 'blob.png')
