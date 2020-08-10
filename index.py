@@ -17,6 +17,8 @@ class VideoCapturer:
 
     def start(self, camera):
         cap = cv.VideoCapture(camera, cv.CAP_DSHOW)
+        cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
         self.num = 0
         while(1):
             _, frame = cap.read()
@@ -64,7 +66,7 @@ class ImagePretreatmenter:
            
 
     def medianBlur(self, img):
-        return cv.medianBlur(img, 5)
+        return cv.medianBlur(img, 7)
 
     def diceblock(self, img):
         blur = self.medianBlur(img)
@@ -81,6 +83,10 @@ class ImagePretreatmenter:
     def gray(self, img):
         return cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
+    def ex(self,img):
+        kernel = np.ones((5,5),np.uint8)
+        opening = cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
+        return opening
     # 索伯
     def sobel(self, img):
         x = cv.Sobel(img, cv.CV_8U, 1, 0)
@@ -94,38 +100,38 @@ class ImagePretreatmenter:
 
     # 邊緣檢測
     def canny(self, img):
-        return cv.Canny(img, 50, 95)
+        return cv.Canny(img, 120, 350) 
+    # 120,350 200,400
 
     # 高斯模糊
     def GaussianBlur(self, img):
         return cv.GaussianBlur(img, (5, 5), 0)
 
-    # 拉普拉斯算子
-    def lapl(self, img):
-        return cv.Laplacian(img, cv.CV_64F)
-
-    # 銳利
-    def curve(self, img):
-        kernel = np.array([[0, -1, 0], [-1, 5.5, -1], [0, -1, 0]], np.float32)
-        dst = cv.filter2D(img, -1, kernel=kernel)
-        return dst
 
     # 霍夫曼圓形檢測(灰值)
     def houghCircle(self, img):
         gray = self.gray(img)
         gau = self.GaussianBlur(gray)
-        canny = self.canny(gau)
-        circles = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 100, param1=10,
-                          param2=15, minRadius=10, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
-        print(len(circles[0]))
-        for circle in circles[0]:
+        med = self.medianBlur(gray)
+        canny = self.canny(self.ex(img))
+        cv.imshow('',canny)
         
-            x = np.int(circle[0])
-            y = int(circle[1])
-            r = int(circle[2])
-            img = cv.circle(img,(x,y),r,(0,255,0),-1)
-            
-            return img
+        circles = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 10, param1=10,
+                          param2=15, minRadius=5, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
+        
+        total = 0
+        for circle in circles:
+            for cp in circle:
+                
+                x = np.int(cp[0])
+                y = int(cp[1])
+                r = int(cp[2])
+                if (r < 15 and r > 5):
+                    img = cv.circle(img,(x,y),r,(0,255,0),-1)
+                    total += 1
+        print('總計有：' + str(total) + '點')
+        cv.imshow('',canny)
+        return img
             
     def pip_contourfy(self):
         dice_1 = cv.imread(TEMPLATE_GROUP + 'dice_1.png')
@@ -142,47 +148,12 @@ class ImagePretreatmenter:
         gray = self.gray(img)
         gau = self.GaussianBlur(gray)
         hou = self.houghCircle(img)
-        # canny = self.canny(gau)
-        # # hou = self.houghCircle(img)
-        # sobel = self.sobel(gray)
-        # # method = cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
-        # cnts, _ = cv.findContours(
-        #     hou, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-        
-     
-        # for i, cnt in enumerate(cnts):
-        #     print(i)
-        #     print(len(cnt))
-        #     ret = cv.matchShapes(cnt, self.pip_contourfy()[i+1], 1, 0.0)
-        #     # if ret < 0.1:
-        #     # print(ret)
-
-        
-        # cv.drawContours(clone, cnts, -1, (0, 255, 0), 2)
-        # count = 0
-        # ares_avrg = 0
-        # for cont in cnts:
-        #     arc = cv.arcLength(cont, True)
-        #     ares = cv.contourArea(cont)  # 計算包圍性狀的面積
-        #     self.ares.append(arc)
-        #     if ares < 55:  # 過濾面積小於50的形狀
-        #         continue
-        #     count += 1  # 總體計數加1
-        #     ares_avrg += ares
-
-        # print('總共有：' + str(count) + '點')
-        # print('---')
-        # print(len(self.ares))
-        # # print('共有:' + str(hou))
         return hou
 
     def processing(self):
      
         for i in self._img_list:
             cont = self.contours(i)
-            gray = self.gray(i)
-            med = self.GaussianBlur(gray)
-            sobel = self.sobel(med)
             yield cont
 
     # 圖片裁減
