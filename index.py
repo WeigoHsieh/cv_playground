@@ -73,11 +73,6 @@ class ImagePretreatmenter:
         in_block = 255 - dice_blocks[1]
         return in_block
 
-    def otsu(self, img):
-        blur = self.GaussianBlur(img)
-        _, th = cv.threshold(blur, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-        return th
-    # 自適應高斯模糊濾波器
 
     def adaptiveGaussianThresHolding(self, img):
         return cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
