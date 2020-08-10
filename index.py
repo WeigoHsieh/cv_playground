@@ -3,6 +3,7 @@ import numpy as np
 # import matplotlib.pyplot as plt
 import cv2 as cv
 # import tensorflow.examples.tutorials.mnist
+import time
 
 WORK_DIR = "C:/Users/09080381/Desktop/assignment/1.dice_classification/"
 TEMPLATE_GROUP = WORK_DIR + 'dice_groups/'
@@ -44,7 +45,10 @@ class ImagePretreatmenter:
         self.after_pretreatment_list = []
         self._img_list = img_list
         self.ares = []
+        start = time.process_time()
         self.start()
+        end = time.process_time()
+        print('花費了：' + str((end - start)*1000) + '毫秒')
 
     def start(self):
         num = 0
@@ -56,6 +60,8 @@ class ImagePretreatmenter:
             num += 1
             cv.waitKey()
             cv.destroyAllWindows()
+            
+           
 
     def medianBlur(self, img):
         return cv.medianBlur(img, 5)
@@ -113,10 +119,19 @@ class ImagePretreatmenter:
     def houghCircle(self, img):
         gray = self.gray(img)
         gau = self.GaussianBlur(gray)
-        sobel = self.sobel(gau)
-        dst = cv.HoughCircles(sobel, cv.HOUGH_GRADIENT, 1, 50, param1=20,
-                          param2=30, minRadius=100, maxRadius=200)  # 把半徑範圍縮小點，檢測內圓，瞳孔
-        return len(dst)
+        canny = self.canny(gau)
+        circles = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 100, param1=10,
+                          param2=15, minRadius=10, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
+        print(len(circles[0]))
+        for circle in circles[0]:
+        
+            x = np.int(circle[0])
+            y = int(circle[1])
+            r = int(circle[2])
+            img = cv.circle(img,(x,y),r,(0,255,0),-1)
+            
+            return img
+            
     def pip_contourfy(self):
         dice_1 = cv.imread(TEMPLATE_GROUP + 'dice_1.png')
         gray = self.gray(dice_1)
@@ -131,13 +146,13 @@ class ImagePretreatmenter:
         clone = img.copy()
         gray = self.gray(img)
         gau = self.GaussianBlur(gray)
-        # hou = self.houghCircle(img)
-        canny = self.canny(gau)
-        # hou = self.houghCircle(img)
-        sobel = self.sobel(gray)
-        # method = cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
-        cnts, _ = cv.findContours(
-            canny.copy(), cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+        hou = self.houghCircle(img)
+        # canny = self.canny(gau)
+        # # hou = self.houghCircle(img)
+        # sobel = self.sobel(gray)
+        # # method = cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
+        # cnts, _ = cv.findContours(
+        #     hou, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         
      
         # for i, cnt in enumerate(cnts):
@@ -148,23 +163,23 @@ class ImagePretreatmenter:
         #     # print(ret)
 
         
-        cv.drawContours(clone, cnts, -1, (0, 255, 0), 2)
-        count = 0
-        ares_avrg = 0
-        for cont in cnts:
-            arc = cv.arcLength(cont, True)
-            ares = cv.contourArea(cont)  # 計算包圍性狀的面積
-            self.ares.append(arc)
-            if ares < 55:  # 過濾面積小於50的形狀
-                continue
-            count += 1  # 總體計數加1
-            ares_avrg += ares
+        # cv.drawContours(clone, cnts, -1, (0, 255, 0), 2)
+        # count = 0
+        # ares_avrg = 0
+        # for cont in cnts:
+        #     arc = cv.arcLength(cont, True)
+        #     ares = cv.contourArea(cont)  # 計算包圍性狀的面積
+        #     self.ares.append(arc)
+        #     if ares < 55:  # 過濾面積小於50的形狀
+        #         continue
+        #     count += 1  # 總體計數加1
+        #     ares_avrg += ares
 
-        print('總共有：' + str(count) + '點')
-        print('---')
-        print(len(self.ares))
-        # print('共有:' + str(hou))
-        return clone
+        # print('總共有：' + str(count) + '點')
+        # print('---')
+        # print(len(self.ares))
+        # # print('共有:' + str(hou))
+        return hou
 
     def processing(self):
      
