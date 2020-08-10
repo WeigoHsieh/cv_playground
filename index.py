@@ -4,6 +4,7 @@ import numpy as np
 import cv2 as cv
 # import tensorflow.examples.tutorials.mnist
 import time
+import math
 
 WORK_DIR = "C:/Users/09080381/Desktop/assignment/1.dice_classification/"
 TEMPLATE_GROUP = WORK_DIR + 'dice_groups/'
@@ -87,6 +88,13 @@ class ImagePretreatmenter:
         kernel = np.ones((5,5),np.uint8)
         opening = cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
         return opening
+    
+    
+    def pip_distance(self,x,y):
+        distance = math.sqrt(math.pow(x,2) + math.pow(y,2))
+        return distance
+    
+    
     # 索伯
     def sobel(self, img):
         x = cv.Sobel(img, cv.CV_8U, 1, 0)
@@ -125,6 +133,7 @@ class ImagePretreatmenter:
                 
                 x = np.int(cp[0])
                 y = int(cp[1])
+                print(self.pip_distance(x,y))
                 r = int(cp[2])
                 if (r < 15 and r > 5):
                     img = cv.circle(img,(x,y),r,(0,255,0),-1)
