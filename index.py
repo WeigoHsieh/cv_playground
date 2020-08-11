@@ -5,6 +5,7 @@ import cv2 as cv
 # import tensorflow.examples.tutorials.mnist
 import time
 import math
+from sklearn.cluster import KMeans
 
 WORK_DIR = "C:/Users/09080381/Desktop/assignment/1.dice_classification/"
 TEMPLATE_GROUP = WORK_DIR + 'dice_groups/'
@@ -51,7 +52,7 @@ class ImagePretreatmenter:
         start = time.process_time()
         self.start()
         end = time.process_time()
-        print('花費了：' + str((end - start)*1000) + '毫秒')
+        print('花費了：' + str((end - start)*100) + '毫秒')
 
     def start(self):
         num = 0
@@ -80,6 +81,27 @@ class ImagePretreatmenter:
     def adaptiveGaussianThresHolding(self, img):
         return cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
     # 灰階
+    
+    
+    def kn(self,data):
+        km = KMeans(n_clusters=3,
+             init='k-means++', 
+             n_init=10, 
+             max_iter=300, 
+             tol=0.0001, 
+             verbose=0, 
+             random_state=None, 
+             copy_x=True, 
+             n_jobs=1, 
+             algorithm='auto'
+             )
+        print(km)
+        result = km.fit_predict(data)
+        return result
+
+        
+        
+        
 
     def gray(self, img):
         return cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -122,41 +144,56 @@ class ImagePretreatmenter:
         gau = self.GaussianBlur(gray)
         med = self.medianBlur(gray)
         canny = self.canny(self.ex(img))
-        cv.imshow('',canny)
         
-        circles = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 10, param1=10,
+        cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 10, param1=10,
                           param2=15, minRadius=5, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
-        
         total = 0
-        for circle in circles:
-            for cp in circle:
-                
-                x = np.int(cp[0])
-                y = int(cp[1])
-                print(self.pip_distance(x,y))
-                r = int(cp[2])
-                if (r < 15 and r > 5):
-                    img = cv.circle(img,(x,y),r,(0,255,0),-1)
-                    total += 1
-        print('總計有：' + str(total) + '點')
-        cv.imshow('',canny)
+        if(cnt is None):
+            print('找不到')
+            return
+        else:
+            for circles in cnt:
+                for cp in circles:
+                    r = int(cp[2])
+                    if (r < 16 and r > 5):
+                        x = np.int(cp[0])
+                        y = int(cp[1])
+                        # print(self.pip_distance(x,y))
+                        img = cv.circle(img,(x,y),r,(0,255,0),-1)
+                        total += 1
+                    else:
+                        pass
+        
+        res = self.kn(cnt[0])
+        res = res.tolist()
+        dice_1 = res.count(0)
+        dice_2 = res.count(1)
+        dice_3 = res.count(2)
+        print('第一顆骰子為：' + str(dice_1) + '點')
+        print('第二顆骰子為：' + str(dice_2) + '點')
+        print('第三顆骰子為：' + str(dice_3) + '點')
+        print('總計有：' + str(dice_1 + dice_2 + dice_3) + '點')
         return img
+    
+    # def list_count(self,dataframe,number):
+    #     pass
             
-    def pip_contourfy(self):
-        dice_1 = cv.imread(TEMPLATE_GROUP + 'dice_1.png')
-        gray = self.gray(dice_1)
-        gau = self.GaussianBlur(gray)
-        template = self.canny(gau)
-        cnts, _ = cv.findContours(
-            template, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-        return cnts
+    # def pip_contourfy(self):
+    #     dice_1 = cv.imread(TEMPLATE_GROUP + 'dice_1.png')
+    #     gray = self.gray(dice_1)
+    #     gau = self.GaussianBlur(gray)
+    #     template = self.canny(gau)
+    #     cnts, _ = cv.findContours(
+    #         template, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+    #     return cnts
 
-    # 輪廓檢測(需要灰、模糊、或者二值化)
+   # 輪廓檢測(需要灰、模糊、或者二值化)
     def contours(self, img):
         clone = img.copy()
         gray = self.gray(img)
         gau = self.GaussianBlur(gray)
         hou = self.houghCircle(img)
+        km = self.kn([[1,2],[1,2],[3,4]])
         return hou
 
     def processing(self):
@@ -166,17 +203,17 @@ class ImagePretreatmenter:
             yield cont
 
     # 圖片裁減
-    def cut(self, img, x, y, w, h):
-        crop_img = img[y:y+h, x:x+w]
-        return crop_img
+    # def cut(self, img, x, y, w, h):
+    #     crop_img = img[y:y+h, x:x+w]
+    #     return crop_img
 
-    def blob_dection(self, img):
-        detector = cv.SimpleBlobDetector()
-        keypoints = detector.detect(img)
-        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
-        img_with_keypoints = cv.drawKeypoints(img, keypoints, np.array(
-            []), (0, 0, 255), cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        return img_with_keypoints
+    # def blob_dection(self, img):
+    #     detector = cv.SimpleBlobDetector()
+    #     keypoints = detector.detect(img)
+    #     # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
+    #     img_with_keypoints = cv.drawKeypoints(img, keypoints, np.array(
+    #         []), (0, 0, 255), cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    #     return img_with_keypoints
 
 
 # # Detect blobs.
@@ -302,6 +339,28 @@ if __name__ == "__main__":
         # destory()
 
     preload_test()
+    
+    def kn(self,data):
+        num_clusters = 3
+        km_cluster = KMeans(n_clusters=num_clusters, max_iter=150, n_init=40, \
+                    init='k-means++')
+        result = km_cluster.fit_predict(data)
+        print(result)
+    
+        
+    # data = [[342.5, 313.5 , 10.6],
+    #         [381.5, 291.5 , 11.8],
+    #         [296.5, 163.5 , 12.5],
+    #         [281.5, 213.5 , 11.4],
+    #         [317.5, 273.5 , 12.2],
+    #         [270.5, 169.5 , 11.4],
+    #         [320.5, 156.5 , 11.8],
+    #         [202.5, 186.5 , 11.4],
+    #         [331.5, 199.5 , 11.8],
+    #         [357.5, 250.5 , 11.8],
+    #         [305.5, 207.5 , 11.4]]
+    # kn(data)
+    
     # template_preload_saobel()
 
     # video = VideoCapturer(0)
