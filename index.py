@@ -21,7 +21,7 @@ class VideoCapturer:
         self.start(camera)
 
     def start(self, camera):
-        cap = cv.VideoCapture(camera, cv.CAP_DSHOW)
+        cap = cv.VideoCapture(camera)
         cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
         self.num = 0

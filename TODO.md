@@ -20,6 +20,7 @@
 
 ### 先利用邊緣檢測template matching判斷是不是骰子，判斷OK就在template裡面做hough circle。
 
+<<<<<<< HEAD
 ## 前言
 
 #### 如果要做骰子判斷的話有以下的步驟：
@@ -27,3 +28,8 @@
 + 圖片的邊緣化。
 
 + 圖片的
+=======
+
+https://docs.opencv.org/trunk/dd/d49/tutorial_py_contour_features.html
+https://stackoverflow.com/questions/44588279/find-and-draw-the-largest-contour-in-opencv-on-a-specific-color-python
+>>>>>>> 8d4435d0ba2558cbf1af4b73f181ec8d53ed4003
