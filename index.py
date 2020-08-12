@@ -6,11 +6,14 @@ import cv2 as cv
 import time
 import math
 from sklearn.cluster import KMeans
+from PIL import ImageStat
+from PIL import Image
 
 WORK_DIR = "C:/Users/09080381/Desktop/assignment/1.dice_classification/"
 TEMPLATE_GROUP = WORK_DIR + 'dice_groups/'
 DICE_WRITE_DIR = WORK_DIR + 'diceing/5/'
 
+cv2 = cv
 
 class VideoCapturer:
     def __init__(self, camera):
@@ -19,25 +22,32 @@ class VideoCapturer:
 
     def start(self, camera):
         cap = cv.VideoCapture(camera, cv.CAP_DSHOW)
-        cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
+        # cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
+        # cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
         self.num = 0
         while(1):
             _, frame = cap.read()
+            if _:
+                cv.imshow('Original Camera in Camera: No.' + str(camera), frame)
+                k = cv.waitKey(1)
+                if k == ord('s'):
+                    cv.imshow('w', frame)
 
-            cv.imshow('Original Camera in Camera: No.' + str(camera), frame)
-            k = cv.waitKey(1)
-            if k == ord('s'):
-                cv.imshow('w', frame)
+                    self.frame.append(frame)
+                    # self.download(frame)
 
-                self.frame.append(frame)
-                # self.download(frame)
-
-            elif k == ord('q'):
+                elif k == ord('q'):
+                    break
+            else:
+                print('鏡頭發生錯誤')
+                cv.imshow('Original Camera in Camera: No.' + str(camera), frame)
                 break
-        cv.destroyAllWindows()
-        cap.release()
-
+        
+        
+            cv.destroyAllWindows()
+            cap.release()
+    
+            
     def download(self, frame):
         cv.imwrite(DICE_WRITE_DIR + str(self.num)+'.png', frame)
         print(self.num)
@@ -64,8 +74,18 @@ class ImagePretreatmenter:
             num += 1
             cv.waitKey()
             cv.destroyAllWindows()
-            
-           
+    
+    def is_brightness(self,gray):
+        gray = Image.fromarray(gray)
+        stat = ImageStat.Stat(gray)
+        if stat.rms[0]> 100:
+            return True
+        return False
+    
+    def equalize(self,img):
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        clahe.apply(img)
+        return img    
 
     def medianBlur(self, img):
         return cv.medianBlur(img, 7)
@@ -77,14 +97,13 @@ class ImagePretreatmenter:
         in_block = 255 - dice_blocks[1]
         return in_block
 
-
     def adaptiveGaussianThresHolding(self, img):
         return cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
     # 灰階
     
     
-    def kn(self,data):
-        km = KMeans(n_clusters=3,
+    def kn(self,data,cluster):
+        km = KMeans(n_clusters=cluster,
              init='k-means++', 
              n_init=10, 
              max_iter=300, 
@@ -128,9 +147,10 @@ class ImagePretreatmenter:
         dst = cv.addWeighted(absX, 1, absY, 1, 0)
         return dst
 
+
     # 邊緣檢測
     def canny(self, img):
-        return cv.Canny(img, 120, 350) 
+        return cv.Canny(img, 120, 200) 
     # 120,350 200,400
 
     # 高斯模糊
@@ -141,10 +161,12 @@ class ImagePretreatmenter:
     # 霍夫曼圓形檢測(灰值)
     def houghCircle(self, img):
         gray = self.gray(img)
+        self.is_brightness(gray)
         gau = self.GaussianBlur(gray)
         med = self.medianBlur(gray)
         canny = self.canny(self.ex(img))
         
+        cv.imshow('',canny)
         cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 10, param1=10,
                           param2=15, minRadius=5, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
         total = 0
@@ -163,8 +185,9 @@ class ImagePretreatmenter:
                         total += 1
                     else:
                         pass
-        
-        res = self.kn(cnt[0])
+        if(len(cnt[0])<6):
+            res = self.kn(cnt[0],1)
+        res = self.kn(cnt[0],3)
         res = res.tolist()
         dice_1 = res.count(0)
         dice_2 = res.count(1)
@@ -191,9 +214,9 @@ class ImagePretreatmenter:
     def contours(self, img):
         clone = img.copy()
         gray = self.gray(img)
+        gray = self.equalize(gray)
         gau = self.GaussianBlur(gray)
         hou = self.houghCircle(img)
-        km = self.kn([[1,2],[1,2],[3,4]])
         return hou
 
     def processing(self):
@@ -328,7 +351,8 @@ if __name__ == "__main__":
 
     def preload_test():
         video = VideoCapturer(0)
-        imagePretreatmenter = ImagePretreatmenter(video.frame)
+        # imagePretreatmenter = ImagePretreatmenter(video.frame)
+        imagePretreatmenter = ImagePretreatmenter([cv2.imread(WORK_DIR + '/exam_9.png')])
 
     def template_preload_saobel():
         for i in range(6):
@@ -339,13 +363,6 @@ if __name__ == "__main__":
         # destory()
 
     preload_test()
-    
-    def kn(self,data):
-        num_clusters = 3
-        km_cluster = KMeans(n_clusters=num_clusters, max_iter=150, n_init=40, \
-                    init='k-means++')
-        result = km_cluster.fit_predict(data)
-        print(result)
     
         
     # data = [[342.5, 313.5 , 10.6],
