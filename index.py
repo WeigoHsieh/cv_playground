@@ -1,7 +1,7 @@
 # import tensorflow as tf
 import numpy as np
 # import matplotlib.pyplot as plt
-import cv2 as cv
+import cv2 
 # import tensorflow.examples.tutorials.mnist
 import time
 import math
@@ -10,7 +10,10 @@ from sklearn.cluster import KMeans
 WORK_DIR = "C:/Users/09080381/Desktop/assignment/1.dice_classification/"
 TEMPLATE_GROUP = WORK_DIR + 'dice_groups/'
 DICE_WRITE_DIR = WORK_DIR + 'diceing/5/'
-
+avg = 0
+start = None
+end = None
+cv = cv2
 
 class VideoCapturer:
     def __init__(self, camera):
@@ -53,19 +56,30 @@ class ImagePretreatmenter:
         self.start()
         end = time.process_time()
         print('花費了：' + str((end - start)*100) + '毫秒')
+        
+       
 
     def start(self):
         num = 0
         for i in self.processing():
+            text = '共花費了：' + str((end - start)*100) + '毫秒'
+            cv2.putText(i, text, (10, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (0, 255, 255), 1, cv2.LINE_AA)
+            
+            i = np.array(cv2.putText)
+            
             cv.namedWindow('Photo:'+str(num))
             # testing
             cv.imshow('Photo:'+str(num), i)
+                 
             self.after_pretreatment_list.append(i)
             num += 1
             cv.waitKey()
             cv.destroyAllWindows()
             
-           
+    def gamma(self,img):
+        img = np.power(img/float(np.max(img)), 1/1.5)
+        return img
 
     def medianBlur(self, img):
         return cv.medianBlur(img, 7)
@@ -136,14 +150,17 @@ class ImagePretreatmenter:
     # 高斯模糊
     def GaussianBlur(self, img):
         return cv.GaussianBlur(img, (5, 5), 0)
-
+    
+    def equalize(self,img):
+        return cv.equalizeHist(img)
 
     # 霍夫曼圓形檢測(灰值)
     def houghCircle(self, img):
         gray = self.gray(img)
-        gau = self.GaussianBlur(gray)
-        med = self.medianBlur(gray)
-        canny = self.canny(self.ex(img))
+        gamma = self.gamma(gray)
+        gau = self.GaussianBlur(gamma)
+        med = self.medianBlur(gamma)
+        canny = self.canny(self.ex(gau))
         
         cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 10, param1=10,
                           param2=15, minRadius=5, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
@@ -155,20 +172,28 @@ class ImagePretreatmenter:
             for circles in cnt:
                 for cp in circles:
                     r = int(cp[2])
-                    if (r < 16 and r > 5):
-                        x = np.int(cp[0])
-                        y = int(cp[1])
-                        # print(self.pip_distance(x,y))
-                        img = cv.circle(img,(x,y),r,(0,255,0),-1)
-                        total += 1
-                    else:
-                        pass
+                    # if (r < 16 and r > 5):
+                    x = np.int(cp[0])
+                    y = int(cp[1])
+                    # print(self.pip_distance(x,y))
+                    img = cv.circle(img,(x,y),12,(0,255,0),-1)
+                    total += 1
+                # else:
+                    #     pass
         
         res = self.kn(cnt[0])
         res = res.tolist()
+ 
         dice_1 = res.count(0)
         dice_2 = res.count(1)
         dice_3 = res.count(2)
+        
+        if (dice_1>6):
+            dice_1 -= 1 
+        if (dice_1>6):
+            dice_1 -= 1
+        if (dice_1>6):
+            dice_1 -= 1 
         print('第一顆骰子為：' + str(dice_1) + '點')
         print('第二顆骰子為：' + str(dice_2) + '點')
         print('第三顆骰子為：' + str(dice_3) + '點')
@@ -197,7 +222,6 @@ class ImagePretreatmenter:
         return hou
 
     def processing(self):
-     
         for i in self._img_list:
             cont = self.contours(i)
             yield cont
