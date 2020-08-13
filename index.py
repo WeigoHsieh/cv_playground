@@ -40,12 +40,10 @@ class VideoCapturer:
                     break
             else:
                 print('鏡頭發生錯誤')
-                cv.imshow('Original Camera in Camera: No.' + str(camera), frame)
                 break
         
-        
-            cv.destroyAllWindows()
-            cap.release()
+        cv.destroyAllWindows()
+        cap.release()
     
             
     def download(self, frame):
@@ -59,7 +57,7 @@ class ImagePretreatmenter:
         self.after_pretreatment_list = []
         self._img_list = img_list
         self.ares = []
-        start = time.process_time()
+        self.start = time.process_time()
         self.start()
         end = time.process_time()
         print('花費了：' + str((end - start)*100) + '毫秒')
@@ -212,10 +210,6 @@ class ImagePretreatmenter:
 
    # 輪廓檢測(需要灰、模糊、或者二值化)
     def contours(self, img):
-        clone = img.copy()
-        gray = self.gray(img)
-        gray = self.equalize(gray)
-        gau = self.GaussianBlur(gray)
         hou = self.houghCircle(img)
         return hou
 
