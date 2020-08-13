@@ -62,7 +62,7 @@ class ImagePretreatmenter:
     
     def canny(self,img_or_gray):
         img = self.medianBlur(img_or_gray)
-        return cv.Canny(img,125,350)
+        return cv.Canny(img,130,250)
     
     def ex(self,img):
         kernel = np.ones((5,5),np.uint8)
@@ -73,8 +73,9 @@ class ImagePretreatmenter:
         canny = self.canny(self.ex(img))
         cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 10, param1=10,
                           param2=15, minRadius=5, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
+        print(cnt)
         if cnt is None:
-            cnt = np.zero(3,3)
+            cnt = [[0,0,0]]
             return cnt
         return cnt     
     def processing(self):
