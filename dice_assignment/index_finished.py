@@ -10,7 +10,9 @@ class VideoCapturer:
     def __init__(self,camera):
         self.camera = camera
         self.frames = []
+        self.cluster = 0
         self.start()
+        self.tempFrame = None
         
     def start(self):
         cap = cv.VideoCapture(self.camera, cv.CAP_DSHOW)
@@ -23,26 +25,54 @@ class VideoCapturer:
                 cv.imshow('Original Camera in Camera: No.' + str(self.camera), frame)
                 k = cv.waitKey(1)
                 if k == ord('s'):
+                    self.cluster = 3
                     cv.imshow('w', frame)
-                    print('鏡頭拍攝:camera on')
+                    print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
                     # self.download(frame)
-
+                elif k == ord('2'):
+                    cv.imshow('w', frame)
+                    print('鏡頭拍攝(camera on)')
+                    self.frames.append(frame)
+                    # self.download(frame)
+                elif k == ord('a'):
+                    self.cluster = 1
+                    cv.imshow('w', frame)
+                    print('鏡頭拍攝(camera on)')
+                    self.frames.append(frame)
+                    # self.download(frame)
+                elif k == ord('w'):
+                     self.cluster = 2
+                     cv.imshow('w', frame)
+                     print('鏡頭拍攝(camera on)')
+                     self.frames.append(frame)
+                elif k == ord('e'):
+                     self.cluster = 4
+                     cv.imshow('w', frame)
+                     print('鏡頭拍攝(camera on)')
+                     self.frames.append(frame)
+                elif k == 32:
+                     self.tempFrame = frame
                 elif k == ord('q'):
-                    print('鏡頭退出 camera exit')
+                    print('鏡頭退出(camera exit)')
                     break
             else:
-                print('鏡頭發生錯誤  camera error')
+                print('鏡頭發生錯誤(camera error)')
                 break
         cv.waitKey(0)
         cv.destroyAllWindows()    
 class ImagePretreatmenter:
-    def __init__(self,frames):
+    def __init__(self,video_capturer,frames):
+
+        self.video_capturer = video_capturer
+        self.tempFrame = video_capturer.tempFrame or 0
         self._img_list = frames
         self.start_time = time.process_time()
         self.gamma = []
+        self.cluster = video_capturer.cluster
         self.cnt = []
         self.start()
+        
         
     def is_brightness(self,gray):
         gray = Image.fromarray(gray)
@@ -71,16 +101,22 @@ class ImagePretreatmenter:
     
     def houghCirlce(self,img):
         canny = self.canny(self.ex(img))
-        cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 3, param1=10,
-                          param2=15, minRadius=5, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
-        print(cnt)
-        if cnt is None:
-            cnt = [[0,0,0]]
-            return cnt
+        
+        if(self.tempFrame == 0): #!!!
+            cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
+                          param2=15, minRadius=5, maxRadius=18) #!!!
+        else:
+            canny2 = self.canny(self.ex(self.tempFrame)) #!!!
+            cnt = cv.HoughCircles(canny+canny2, cv.HOUGH_GRADIENT, 1, 15, param1=10, #!!!
+                              param2=15, minRadius=5, maxRadius=18)
         return cnt     
     def processing(self):
         for i in self._img_list:
             cnt = self.houghCirlce(i)
+            canny = self.canny(self.ex(i))
+            # cv.imshow('cany',canny)
+            # cv.waitKey(0)
+            # cv.destroyAllWindows()
             self.cnt.append(cnt)
     def start(self):
         self.processing()
@@ -92,43 +128,46 @@ class PatternMatcher:
         self.finish_time = 'Process Time:' + str((self.end_time - self.start_time) * 1000) + 'ms'
         self.cnt = img_pretreatmenter.cnt 
         self._img_list = img_pretreatmenter._img_list
+        self.cluster = img_pretreatmenter.cluster
         self.start()
     def kmeans(self,data,cluster):
         km = KMeans(n_clusters=cluster,
              init='k-means++', 
              n_init=10, 
-             max_iter=300, 
+             max_iter=300,
              tol=0.0001, 
              verbose=0, 
              random_state=None, 
              copy_x=True, 
-             n_jobs=1, 
              algorithm='auto'
              )
         result = km.fit_predict(data)
         return result                
     def draw_pips(self,img):
-        total = 0
-        for i,circles in enumerate(self.cnt[0]):
-            for j, cp in enumerate(circles):
-                r = int(cp[2])
-                if (r < 15 and r >= 2):
-                    x = np.int(cp[0])
-                    y = int(cp[1])
-                    img = cv.circle(img,(x,y),r,(0,255,0),-1)
-                    # img.putText()
-                    total += 1
-                else:
-                    self.cnt[0][i][j] = False
-        img = self.draw_processing_time(img)
-        cv.imshow(str(total), img)
+        print(self.cnt)
+        if(self.cnt[0] is None):
+            return 0
+        else:
+            total = 0
+            for i,circles in enumerate(self.cnt[0]):
+                for j, cp in enumerate(circles):
+                    r = int(cp[2])
+                    if (r <= 16 and r >= 2):
+                        x = np.int(cp[0])
+                        y = int(cp[1])
+                        img = cv.circle(img,(x,y),r,(0,255,0),-1)
+                        # img.putText()
+                        total += 1
+                    else:
+                        self.cnt[0][i][j] = False
+            img = self.draw_processing_time(img)
+            cv.imshow(str(total), img)
        
     def draw_processing_time(self,img):
         cv.putText(img,self.finish_time,(10,30),cv.FONT_HERSHEY_COMPLEX,0.6,(0,255,0))
         return img
-        return img
     def show_dices_and_pips(self):
-        res = self.kmeans(self.cnt[0][0], 3)
+        res = self.kmeans(self.cnt[0][0], self.cluster)
         # if(len(self.cnt[0])<6):
         #     res = self.kn(self.cnt[0],1)
         # else:
@@ -143,18 +182,21 @@ class PatternMatcher:
         print('總計有(total)：' + str(dice_1 + dice_2 + dice_3) + '點(point)')
         
     def start(self):
+        if (self.cnt[0] is None):
+            print('沒有偵測到任何骰子，請準備好骰子再開始遊玩。(No dice be detected)')
+            return
+        if (self.cluster > 3):
+            print('目前只接受最多3顆骰子，請準備好至多3顆骰子遊玩。(No more than 3 dices at the same time.)')
+            return 
         for img in self._img_list:
-            if (self.cnt is None):
-                print('沒有偵測到任何骰子(No dice)')
-                break
             self.draw_pips(img)
             self.show_dices_and_pips()
             cv.waitKey(0)
             cv.destroyAllWindows()
+        cv.waitKey(0)
+        cv.destroyAllWindows()
     
 if __name__ == '__main__':
     video_capturer = VideoCapturer(0)
-    image_pretreatmenter = ImagePretreatmenter(video_capturer.frames)
+    image_pretreatmenter = ImagePretreatmenter(video_capturer,video_capturer.frames)
     pattern_matcher = PatternMatcher(image_pretreatmenter)
-    
-    

@@ -71,7 +71,7 @@ class ImagePretreatmenter:
     
     def houghCirlce(self,img):
         canny = self.canny(self.ex(img))
-        cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 3, param1=10,
+        cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 10, param1=10,
                           param2=15, minRadius=5, maxRadius=30)  # 把半徑範圍縮小點，檢測內圓，瞳孔
         print(cnt)
         if cnt is None:
@@ -115,7 +115,7 @@ class PatternMatcher:
                 if (r < 15 and r >= 2):
                     x = np.int(cp[0])
                     y = int(cp[1])
-                    img = cv.circle(img,(x,y),r,(0,255,0),-1)
+                    img = cv.circle(img,(x,y),11,(0,255,0),-1)
                     # img.putText()
                     total += 1
                 else:
