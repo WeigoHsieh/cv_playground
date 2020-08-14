@@ -103,7 +103,7 @@ class ImagePretreatmenter:
         canny = self.canny(self.ex(img))
         
         if(self.tempFrame == 0): #!!!
-            cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
+            cnt = cv.HoughCircles((canny+250)*10*2, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
                           param2=15, minRadius=5, maxRadius=18) #!!!
         else:
             canny2 = self.canny(self.ex(self.tempFrame)) #!!!
@@ -122,6 +122,7 @@ class ImagePretreatmenter:
         self.processing()
 class PatternMatcher:
     def __init__(self,img_pretreatmenter):
+        self.R = 0
         self.img_pretreatmenter = img_pretreatmenter
         self.start_time = self.img_pretreatmenter.start_time
         self.end_time = time.process_time()
@@ -131,6 +132,8 @@ class PatternMatcher:
         self.cluster = img_pretreatmenter.cluster
         self.start()
     def kmeans(self,data,cluster):
+        if (len(data) == 2):
+            cluster = 2
         km = KMeans(n_clusters=cluster,
              init='k-means++', 
              n_init=10, 
@@ -144,22 +147,24 @@ class PatternMatcher:
         result = km.fit_predict(data)
         return result                
     def draw_pips(self,img):
-        print(self.cnt)
+        print(self.cnt[0])
         if(self.cnt[0] is None):
             return 0
         else:
             total = 0
+            self.R = self.cnt[0][0][:,2]
             for i,circles in enumerate(self.cnt[0]):
                 for j, cp in enumerate(circles):
-                    r = int(cp[2])
-                    if (r <= 16 and r >= 2):
+                    r = np.mean(self.R)
+                    print(r)
+                    if (r < r+2 and r > r-2):
                         x = np.int(cp[0])
                         y = int(cp[1])
-                        img = cv.circle(img,(x,y),r,(0,255,0),-1)
+                        img = cv.circle(img,(x,y),int(r),(0,255,0),-1)
                         # img.putText()
                         total += 1
                     else:
-                        self.cnt[0][i][j] = False
+                        print('距離太遠了，換個位置吧')
             img = self.draw_processing_time(img)
             cv.imshow(str(total), img)
        
