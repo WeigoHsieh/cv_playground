@@ -31,41 +31,37 @@ class VideoCapturer:
                 cv.imshow('Original Camera in Camera: No.' + str(self.camera), frame)
                 k = cv.waitKey(1)
                 if k == ord('s'):
-                    self.cannyP = 400
+                    self.cannyP = 250
                     self.cluster = 3
                     cv.imshow('w', frame)
                     print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
                     # self.download(frame)
-                elif k == ord('1'):
-                    self.cannyP = 125
-                    self.cluster = 5
+                elif k == ord('2'):
                     cv.imshow('w', frame)
                     print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
                     # self.download(frame)
                 elif k == ord('a'):
                     self.cluster = 1
-                    self.cannyP = 350
                     cv.imshow('w', frame)
                     print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
                     # self.download(frame)
                 elif k == ord('w'):
-                     self.cannyP = 350
                      self.cluster = 2
                      cv.imshow('w', frame)
                      print('鏡頭拍攝(camera on)')
                      self.frames.append(frame)
                 elif k == ord('e'):
                      self.cluster = 3
-                     self.cannyP = 125
+                     self.cannyP = 111
                      cv.imshow('w', frame)
                      print('鏡頭拍攝(camera on)')
                      self.frames.append(frame)
                 elif k == ord('d'):
                      self.cluster = 5
-                     self.cannyP = 400
+                     self.cannyP = 250
                      cv.imshow('w', frame)
                      print('鏡頭拍攝(camera on)')
                      self.frames.append(frame)
@@ -96,8 +92,7 @@ class ImagePretreatmenter:
         clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         cl1 = clahe.apply(img)
         #!!!
-        if (testing == True):
-            cv.imshow('showq',cl1)
+        cv.imshow('showq',cl1)
         return cl1
     
     def updateAlpha(self,x):
@@ -136,11 +131,10 @@ class ImagePretreatmenter:
         img = self.cli(img)
         img = self.medianBlur(img)
         canny = self.canny(self.ex(img), self.cannyP)
-        if(testing == True):
-            cv.imshow('cany',canny)
+        cv.imshow('cany',canny)
         # if(self.tempFrame == 0): #!!!
         cnt = cv.HoughCircles((canny+250)*10*2, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
-                      param2=15, minRadius=6, maxRadius=16) #!!!
+                      param2=15, minRadius=5, maxRadius=18) #!!!
         # else:
         #     canny2 = self.canny(self.ex(self.tempFrame)) #!!!
         #     cnt = cv.HoughCircles(canny+canny2, cv.HOUGH_GRADIENT, 1, 15, param1=10, #!!!
@@ -164,8 +158,8 @@ class PatternMatcher:
         self.cluster = img_pretreatmenter.cluster
         self.start()
     def kmeans(self,data,cluster):
-        # if (len(data) == 2):
-        #     cluster = 2
+        if (len(data) == 2):
+            cluster = 2
         km = KMeans(n_clusters=int(cluster),
              init='k-means++', 
              n_init=10, 
@@ -243,7 +237,7 @@ class PatternMatcher:
             cv.destroyAllWindows()
     
 if __name__ == '__main__':
-    testing = True
+    testing = False
     video_capturer = VideoCapturer(0)
     image_pretreatmenter = ImagePretreatmenter(video_capturer,video_capturer.frames)
     pattern_matcher = PatternMatcher(image_pretreatmenter)
