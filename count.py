@@ -45,7 +45,7 @@ markers = cv2.threshold(pyramids, 0.8, 1, 0)[1]
 
 # convert the numpy matrix from float [0..1] to int [0..255]
 bwImg = cv2.convertScaleAbs(markers * 255)
-# cv2.imshow('bwimg',bwImg)
+cv2.imshow('bwimg',bwImg)
 
 # capture those contours!
 pyramids, hierarchy = cv2.findContours(bwImg.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)

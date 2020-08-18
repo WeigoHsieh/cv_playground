@@ -1,7 +1,7 @@
 流程步驟：
-I.找到攝影機位置並拍照。
-II.圖像預處理
-III.判定點數
+- [x] I.找到攝影機位置並拍照。
+- [x] II.圖像預處理
+- [] III.判定點數
 
 
 # I.找到攝影機位置並拍照。
@@ -15,8 +15,7 @@ III.判定點數
 4.ad
 
 # III.判定點數
+[] 1.分割判斷
+[x] 2.點數加總
 
-1.匹配
-
-
-### 先利用邊緣檢測template matching判斷是不是骰子，判斷OK就在template裡面做blob detection。
+### 先利用邊緣檢測template matching判斷是不是骰子，判斷OK就在template裡面做hough circle。
