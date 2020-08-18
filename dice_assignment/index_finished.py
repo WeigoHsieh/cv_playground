@@ -6,7 +6,7 @@ from PIL import Image,ImageStat
 from sklearn.cluster import KMeans
 
 
-can_low = 140
+can_low = 80
 can_high = 350
 
 testing = True
@@ -96,7 +96,7 @@ class VideoCapturer:
                      print('鏡頭拍攝(camera on)')
                      self.frames.append(frame)
                 elif k == 32:
-                     self.tempFrame = frame
+                     cv.imwrite('temp123.png',frame)
                 elif k == ord('q'):
                     print('鏡頭退出(camera exit)')
                     break
@@ -118,16 +118,32 @@ class ImagePretreatmenter:
         self.start()
     
     def cli(self,img):
-        def on_trackbar(val):
-            val = val / cli
-            
         img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        clahe = cv.createCLAHE(clipLimit=5.0, tileGridSize=(10,10))
+        clahe = cv.createCLAHE(clipLimit=1.0, tileGridSize=(10,10))
         cl1 = clahe.apply(img)
         #!!!
         if (testing == True):
             cv.imshow('showq',cl1)
         return cl1
+    
+    def blob(self,img):
+        gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+        # threshold = self.adaptive(gray)
+        detector = cv.SimpleBlobDetector()
+        keypoints = detector.detect(gray)
+        im_with_keypoints = cv.drawKeypoints(gray,
+                                             keypoints,
+                                             np.array([]),
+                                             (0,0,255),
+                                             cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        return im_with_keypoints
+    
+    def adaptive(self,img):
+        gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+        gray = self.medianBlur(gray)
+        img = cv.adaptiveThreshold(gray,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv.THRESH_BINARY,11,2)
+        return img
     
     def updateAlpha(self,x):
         alpha = 0.3
@@ -150,11 +166,11 @@ class ImagePretreatmenter:
         return cv.GaussianBlur(img_or_gray, (7, 7), 0)
     
     def medianBlur(self,img_or_gray):
-        return cv.medianBlur(img_or_gray,1)
+        return cv.medianBlur(img_or_gray,7)
     
     def canny(self,img_or_gray,p):
         img_or_gray = cv.blur(img_or_gray,(5,5))
-        return cv.Canny(img_or_gray,160,p)
+        return cv.Canny(img_or_gray,75,p)
     
     def ex(self,img):
         kernel = np.ones((5,5),np.uint8)
@@ -162,6 +178,9 @@ class ImagePretreatmenter:
         return opening
     
     def houghCirlce(self,img):
+        
+        if (testing == True):
+            cv.imshow('blob', self.adaptive(img))
         img = self.cli(img)
         test_print(self.is_brightness(img))
         canny = self.canny(self.ex(img), self.cannyP)
