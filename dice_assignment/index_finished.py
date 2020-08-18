@@ -6,7 +6,7 @@ from PIL import Image,ImageStat
 from sklearn.cluster import KMeans
 
 
-can_low = 180
+can_low = 140
 can_high = 350
 
 testing = True
@@ -122,7 +122,7 @@ class ImagePretreatmenter:
             val = val / cli
             
         img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        clahe = cv.createCLAHE(clipLimit=1.0, tileGridSize=(6,6))
+        clahe = cv.createCLAHE(clipLimit=5.0, tileGridSize=(10,10))
         cl1 = clahe.apply(img)
         #!!!
         if (testing == True):
@@ -153,8 +153,8 @@ class ImagePretreatmenter:
         return cv.medianBlur(img_or_gray,1)
     
     def canny(self,img_or_gray,p):
-        # img = self.medianBlur(img_or_gray)
-        return cv.Canny(img_or_gray,130,p)
+        img_or_gray = cv.blur(img_or_gray,(5,5))
+        return cv.Canny(img_or_gray,160,p)
     
     def ex(self,img):
         kernel = np.ones((5,5),np.uint8)
@@ -168,7 +168,7 @@ class ImagePretreatmenter:
         if(testing == True):
             cv.imshow('cany',canny)
         # if(self.tempFrame == 0): #!!!
-        cnt = cv.HoughCircles((canny-130)*100, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
+        cnt = cv.HoughCircles((canny+65)*100, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
                       param2=15, minRadius=6, maxRadius=16) #!!!
         # else:
         #     canny2 = self.canny(self.ex(self.tempFrame)) #!!!
