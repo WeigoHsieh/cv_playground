@@ -6,7 +6,7 @@ from PIL import Image,ImageStat
 from sklearn.cluster import KMeans
 
 
-can_low = 80
+can_low = 120
 can_high = 350
 
 testing = True
@@ -117,9 +117,10 @@ class ImagePretreatmenter:
         self.cnt = []
         self.start()
     
+   
     def cli(self,img):
         img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        clahe = cv.createCLAHE(clipLimit=1.0, tileGridSize=(10,10))
+        clahe = cv.createCLAHE(clipLimit=1.0, tileGridSize=(6,6))
         cl1 = clahe.apply(img)
         #!!!
         if (testing == True):
@@ -156,6 +157,13 @@ class ImagePretreatmenter:
             cv.THRESH_BINARY,11,2)
         return img
     
+    def gamma_trans(self,img,gamma):
+	#具體做法先歸一化到1，然後gamma作為指數值求出新的畫素值再還原
+    	gamma_table = [np.power(x/255.0,gamma)*255.0 for x in range(256)]
+    	gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)
+    	#實現對映用的是Opencv的查表函式
+    	return cv.LUT(img,gamma_table)
+
     def updateAlpha(self,x):
         alpha = 0.3
         alpha = cv.getTrackbarPos('Alpha','image')
@@ -178,7 +186,7 @@ class ImagePretreatmenter:
         return cv.medianBlur(img_or_gray,7)
     
     def canny(self,img_or_gray,p):
-        img_or_gray = cv.blur(img_or_gray,(5,5))
+        img_or_gray = cv.GaussianBlur(img_or_gray,(7,7),0)
         return cv.Canny(img_or_gray,75,p)
     
     def ex(self,img):
@@ -187,9 +195,7 @@ class ImagePretreatmenter:
         return opening
     
     def houghCirlce(self,img):
-        sobel = self.sobel(img)
-        if (testing == True):
-            cv.imshow('blob', self.sobel)
+        
         img = self.cli(img)
         test_print(self.is_brightness(img))
         canny = self.canny(self.ex(img), self.cannyP)
@@ -197,8 +203,8 @@ class ImagePretreatmenter:
         if(testing == True):
             cv.imshow('cany',(canny-25)*100)
         # if(self.tempFrame == 0): #!!!
-        cnt = cv.HoughCircles(sobel, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
-                      param2=15, minRadius=6, maxRadius=16) #!!!
+        cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 18, param1=12, #!!!
+                      param2=15, minRadius=8, maxRadius=16) #!!!
         # else:
         #     canny2 = self.canny(self.ex(self.tempFrame)) #!!!
         #     cnt = cv.HoughCircles(canny+canny2, cv.HOUGH_GRADIENT, 1, 15, param1=10, #!!!
@@ -235,6 +241,8 @@ class PatternMatcher:
              algorithm='auto'
              )
         result = km.fit_predict(data)
+        result = np.sort(result)
+        test_print(result)
         return result                
     def draw_pips(self,img):
         test_print(self.cnt[0])
