@@ -126,6 +126,17 @@ class ImagePretreatmenter:
             cv.imshow('showq',cl1)
         return cl1
     
+    def sobel(self,img):
+        img = cv.blur(img,(5,5))
+        img = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+        x = cv.Sobel(img,cv.CV_16S,1,0)
+        y = cv.Sobel(img,cv.CV_16S,0,1)
+        absX = cv.convertScaleAbs(x)         
+        absY = cv.convertScaleAbs(y)
+        dst = cv.addWeighted(absX,0.5,absY,0.5,0)
+        return dst
+
+    
     def blob(self,img):
         gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
         # threshold = self.adaptive(gray)
@@ -159,8 +170,6 @@ class ImagePretreatmenter:
             return True
         return False
     
-    def set_gamma(self,params):
-        self.gamma = params   
         
     def gaussianBlur(self,img_or_gray):
         return cv.GaussianBlur(img_or_gray, (7, 7), 0)
@@ -178,16 +187,17 @@ class ImagePretreatmenter:
         return opening
     
     def houghCirlce(self,img):
-        
+        sobel = self.sobel(img)
         if (testing == True):
-            cv.imshow('blob', self.adaptive(img))
+            cv.imshow('blob', self.sobel)
         img = self.cli(img)
         test_print(self.is_brightness(img))
         canny = self.canny(self.ex(img), self.cannyP)
+        
         if(testing == True):
-            cv.imshow('cany',canny)
+            cv.imshow('cany',(canny-25)*100)
         # if(self.tempFrame == 0): #!!!
-        cnt = cv.HoughCircles((canny+65)*100, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
+        cnt = cv.HoughCircles(sobel, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
                       param2=15, minRadius=6, maxRadius=16) #!!!
         # else:
         #     canny2 = self.canny(self.ex(self.tempFrame)) #!!!
