@@ -198,7 +198,7 @@ class ImagePretreatmenter:
         
         img = self.cli(img)
         test_print(self.is_brightness(img))
-        canny = self.canny(self.ex(img), self.cannyP)
+        canny = self.canny(img, self.cannyP)
         
         if(testing == True):
             cv.imshow('cany',(canny-25)*100)
@@ -308,8 +308,9 @@ class PatternMatcher:
             cv.waitKey(0)
             cv.destroyAllWindows()
     
+    
 if __name__ == '__main__':
-    testing = True
+    testing = False
     video_capturer = VideoCapturer(0)
     image_pretreatmenter = ImagePretreatmenter(video_capturer,video_capturer.frames)
     pattern_matcher = PatternMatcher(image_pretreatmenter)
