@@ -1,12 +1,13 @@
-
+# TODO: Change imshow Window to one shot power.
 import cv2 as cv
 import numpy as np
 import time
 from PIL import Image,ImageStat
 from sklearn.cluster import KMeans
+import math
 
 
-can_low = 120
+can_low = 110
 can_high = 350
 
 testing = True
@@ -16,24 +17,23 @@ def test_print(parms):
         print(parms)
 
 class VideoCapturer:
-    def __init__(self,camera):
+    def __init__(self):
         self.cannyP = 0
-        self.camera = camera
         self.frames = []
         self.cluster = 0
         self.start()
         self.tempFrame = None
         
-    def start(self):
-        cap = cv.VideoCapture(self.camera, cv.CAP_DSHOW)
+    def record_video(self):
+        cap = cv.VideoCapture(0, cv.CAP_DSHOW)
         cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
         self.num = 0
         while(1):
             _, frame = cap.read()
             if _:
-                cv.imshow('Original Camera in Camera: No.' + str(self.camera), frame)
-                k = cv.waitKey(1)
+                cv.imshow('Original Camera in Camera: No.' + str(q, frame)
+                # k = cv.waitKey(1)
                 # if k == ord('s'):
                 #     self.cannyP = can_high
                 #     self.cluster = 3
@@ -44,67 +44,43 @@ class VideoCapturer:
                 if k == ord('1'):
                     self.cannyP = can_low
                     self.cluster = 1
-                    cv.imshow('w', frame)
+                    
                     print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
                     # self.download(frame)
                 elif k == ord('2'):
                     self.cannyP = can_low
                     self.cluster = 2
-                    cv.imshow('w', frame)
+                    
                     print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
                     # self.download(frame)
-                
+                 
                 elif k == ord('3'):
                     self.cannyP = can_low
                     self.cluster = 3
-                    cv.imshow('w', frame)
+                    
                     print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
                     # self.download(frame)
-                
-                elif k == ord('a'):
-                    self.cluster = 1
-                    self.cannyP = can_high
-                    cv.imshow('w', frame)
-                    print('鏡頭拍攝(camera on)')
-                    self.frames.append(frame)
-                    # self.download(frame)
-                elif k == ord('s'):
-                     self.cannyP = can_high
-                     self.cluster = 2
-                     cv.imshow('w', frame)
-                     print('鏡頭拍攝(camera on)')
-                     self.frames.append(frame)
-                elif k == ord('d'):
-                     self.cluster = 3
-                     self.cannyP = can_high
-                     cv.imshow('w', frame)
-                     print('鏡頭拍攝(camera on)')
-                     self.frames.append(frame)
-                elif k == ord('w'):
-                     self.cluster = 5
-                     self.cannyP = can_high
-                     cv.imshow('w', frame)
-                     print('鏡頭拍攝(camera on)')
-                     self.frames.append(frame)
+                   
                 elif k == ord('e'):
                      self.cluster = 5
                      self.cannyP = can_low
-                     cv.imshow('w', frame)
+                     
                      print('鏡頭拍攝(camera on)')
                      self.frames.append(frame)
-                elif k == 32:
-                     cv.imwrite('temp123.png',frame)
+                     
                 elif k == ord('q'):
                     print('鏡頭退出(camera exit)')
                     break
+                   
             else:
                 print('鏡頭發生錯誤(camera error)')
-                break
         cv.waitKey(0)
         cv.destroyAllWindows()    
+    def start(self):
+        self.record_video()
 class ImagePretreatmenter:
     def __init__(self,video_capturer,frames):
         self.cannyP = video_capturer.cannyP
@@ -189,13 +165,13 @@ class ImagePretreatmenter:
     
         
     def gaussianBlur(self,img_or_gray):
-        return cv.GaussianBlur(img_or_gray, (7, 7), 0)
+        return cv.GaussianBlur(img_or_gray, (5, 5), 0)
     
     def medianBlur(self,img_or_gray):
         return cv.medianBlur(img_or_gray,7)
     
     def canny(self,img_or_gray,p):
-        img_or_gray = cv.GaussianBlur(img_or_gray,(7,7),0)
+        img_or_gray = cv.GaussianBlur(img_or_gray,(5,5),0)
         return cv.Canny(img_or_gray,75,p)
     
     def ex(self,img):
@@ -205,7 +181,6 @@ class ImagePretreatmenter:
     
     def houghCirlce(self,img):
         img = self.cli(img)
-    
         test_print(self.is_brightness(img))
         canny = self.canny(self.ex(img), self.cannyP)
       
@@ -269,7 +244,7 @@ class PatternMatcher:
                     if (r < r+3 and r > r-3):
                         x = np.int(cp[0])
                         y = int(cp[1])
-                        img = cv.circle(img,(x,y),int(r),(0,255,0),-1)
+                        img = cv.circle(img,(x,y),int(round(r)),(0,255,0),-1)
                         total += 1
                     else:
                         print('距離太遠了，換個位置吧')
@@ -321,6 +296,6 @@ class PatternMatcher:
     
 if __name__ == '__main__':
     testing = True
-    video_capturer = VideoCapturer(0)
+    video_capturer = VideoCapturer()
     image_pretreatmenter = ImagePretreatmenter(video_capturer,video_capturer.frames)
     pattern_matcher = PatternMatcher(image_pretreatmenter)
