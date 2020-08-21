@@ -23,6 +23,7 @@ class VideoCapturer:
         self.cluster = 0
         self.start()
         
+        #ww
         
     def record_video(self):
         cap = cv.VideoCapture(0, cv.CAP_DSHOW)
