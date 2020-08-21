@@ -136,6 +136,7 @@ class ImagePretreatmenter:
         absY = cv.convertScaleAbs(y)
         dst = cv.addWeighted(absX,0.5,absY,0.5,0)
         return dst
+    
 
     
     def blob(self,img):
@@ -149,6 +150,10 @@ class ImagePretreatmenter:
                                              (0,0,255),
                                              cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         return im_with_keypoints
+    
+    def otsu(self,img):
+        ret2,th2 = cv.threshold(img,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
+        return th2
     
     def adaptive(self,img):
         gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
@@ -178,6 +183,10 @@ class ImagePretreatmenter:
             return True
         return False
     
+    def find_contours(self,img):
+        contours = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)[0]
+        return contours
+    
         
     def gaussianBlur(self,img_or_gray):
         return cv.GaussianBlur(img_or_gray, (7, 7), 0)
@@ -190,21 +199,22 @@ class ImagePretreatmenter:
         return cv.Canny(img_or_gray,75,p)
     
     def ex(self,img):
-        kernel = np.ones((5,5),np.uint8)
+        kernel = np.ones((7,7),np.uint8)
         opening = cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
         return opening
     
     def houghCirlce(self,img):
-        
         img = self.cli(img)
+    
         test_print(self.is_brightness(img))
         canny = self.canny(self.ex(img), self.cannyP)
+      
         
         if(testing == True):
-            cv.imshow('cany',(canny-25)*100)
+            cv.imshow('canny',canny)
         # if(self.tempFrame == 0): #!!!
         cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 18, param1=12, #!!!
-                      param2=15, minRadius=8, maxRadius=16) #!!!
+                      param2=15, minRadius=6, maxRadius=16) #!!!
         # else:
         #     canny2 = self.canny(self.ex(self.tempFrame)) #!!!
         #     cnt = cv.HoughCircles(canny+canny2, cv.HOUGH_GRADIENT, 1, 15, param1=10, #!!!
@@ -243,7 +253,8 @@ class PatternMatcher:
         result = km.fit_predict(data)
         result = np.sort(result)
         test_print(result)
-        return result                
+        return result   
+             
     def draw_pips(self,img):
         test_print(self.cnt[0])
         if(self.cnt[0] is None):
