@@ -22,7 +22,7 @@ class VideoCapturer:
         self.frames = []
         self.cluster = 0
         self.start()
-        self.tempFrame = None
+        
         
     def record_video(self):
         cap = cv.VideoCapture(0, cv.CAP_DSHOW)
