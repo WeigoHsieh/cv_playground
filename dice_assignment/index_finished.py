@@ -9,6 +9,7 @@ import math
 
 can_low = 110
 can_high = 350
+CLUSTER = 1
 
 testing = True
 
@@ -18,55 +19,51 @@ def test_print(parms):
 
 class VideoCapturer:
     def __init__(self):
-        self.cannyP = 0
         self.frames = []
-        self.cluster = 0
         self.start()
-        self.tempFrame = None
         
     def record_video(self):
         cap = cv.VideoCapture(0, cv.CAP_DSHOW)
         cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
         self.num = 0
+        global CLUSTER 
         while(1):
             _, frame = cap.read()
             if _:
-                cv.imshow('Original Camera in Camera: No.' + str(q, frame)
-                # k = cv.waitKey(1)
-                # if k == ord('s'):
-                #     self.cannyP = can_high
-                #     self.cluster = 3
-                #     cv.imshow('w', frame)
-                #     print('鏡頭拍攝(camera on)')
-                #     self.frames.append(frame)
-                #     # self.download(frame)
+                cv.imshow('Original Camera in Camera: No.' + str(0),frame)
+                k = cv.waitKey(1)
+             
                 if k == ord('1'):
-                    self.cannyP = can_low
-                    self.cluster = 1
+                     
+                    CLUSTER = 1
                     
                     print('鏡頭拍攝(camera on)')
-                    self.frames.append(frame)
-                    # self.download(frame)
+                    
+                    image_pretreatmenter = ImagePretreatmenter(frame)
+                    pattern_matcher = PatternMatcher(image_pretreatmenter)
+                   
                 elif k == ord('2'):
-                    self.cannyP = can_low
-                    self.cluster = 2
+               
+                    CLUSTER = 2
                     
                     print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
-                    # self.download(frame)
+                    image_pretreatmenter = ImagePretreatmenter(frame)
+                    pattern_matcher = PatternMatcher(image_pretreatmenter)
                  
                 elif k == ord('3'):
-                    self.cannyP = can_low
-                    self.cluster = 3
+                    
+                    CLUSTER = 3
                     
                     print('鏡頭拍攝(camera on)')
                     self.frames.append(frame)
-                    # self.download(frame)
+                    image_pretreatmenter = ImagePretreatmenter(frame)
+                    pattern_matcher = PatternMatcher(image_pretreatmenter)
                    
                 elif k == ord('e'):
-                     self.cluster = 5
-                     self.cannyP = can_low
+                     CLUSTER = 5
+                    
                      
                      print('鏡頭拍攝(camera on)')
                      self.frames.append(frame)
@@ -77,24 +74,21 @@ class VideoCapturer:
                    
             else:
                 print('鏡頭發生錯誤(camera error)')
-        cv.waitKey(0)
         cv.destroyAllWindows()    
     def start(self):
         self.record_video()
 class ImagePretreatmenter:
-    def __init__(self,video_capturer,frames):
-        self.cannyP = video_capturer.cannyP
-        self.video_capturer = video_capturer
-        self.tempFrame = video_capturer.tempFrame or 0
-        self._img_list = frames
+    def __init__(self,frame):
         self.start_time = time.process_time()
-        self.gamma = []
-        self.cluster = video_capturer.cluster
-        self.cnt = []
+        self.frame = frame
+        self.cnt = None
         self.start()
+        
+    def start(self):
+        self.houghCircle(self.frame)
     
-   
     def cli(self,img):
+
         img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
         clahe = cv.createCLAHE(clipLimit=1.0, tileGridSize=(6,6))
         cl1 = clahe.apply(img)
@@ -103,115 +97,48 @@ class ImagePretreatmenter:
             cv.imshow('showq',cl1)
         return cl1
     
-    def sobel(self,img):
-        img = cv.blur(img,(5,5))
-        img = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-        x = cv.Sobel(img,cv.CV_16S,1,0)
-        y = cv.Sobel(img,cv.CV_16S,0,1)
-        absX = cv.convertScaleAbs(x)         
-        absY = cv.convertScaleAbs(y)
-        dst = cv.addWeighted(absX,0.5,absY,0.5,0)
-        return dst
-    
-
-    
-    def blob(self,img):
-        gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-        # threshold = self.adaptive(gray)
-        detector = cv.SimpleBlobDetector()
-        keypoints = detector.detect(gray)
-        im_with_keypoints = cv.drawKeypoints(gray,
-                                             keypoints,
-                                             np.array([]),
-                                             (0,0,255),
-                                             cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-        return im_with_keypoints
-    
-    def otsu(self,img):
-        ret2,th2 = cv.threshold(img,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)
-        return th2
-    
-    def adaptive(self,img):
-        gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-        gray = self.medianBlur(gray)
-        img = cv.adaptiveThreshold(gray,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv.THRESH_BINARY,11,2)
-        return img
-    
-    def gamma_trans(self,img,gamma):
-	#具體做法先歸一化到1，然後gamma作為指數值求出新的畫素值再還原
-    	gamma_table = [np.power(x/255.0,gamma)*255.0 for x in range(256)]
-    	gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)
-    	#實現對映用的是Opencv的查表函式
-    	return cv.LUT(img,gamma_table)
-
-    def updateAlpha(self,x):
-        alpha = 0.3
-        alpha = cv.getTrackbarPos('Alpha','image')
-        alpha = alpha * 0.01
-        self._img_list[0] = np.uint8(np.clip((alpha * self._img_list[0] + 80), 0, 255))    
-        
-        
-    def is_brightness(self,gray):
-        gray = Image.fromarray(gray)
-        stat = ImageStat.Stat(gray)
-        if stat.rms[0]> 100:
-            return True
-        return False
-    
-    def find_contours(self,img):
-        contours = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)[0]
-        return contours
-    
-        
-    def gaussianBlur(self,img_or_gray):
-        return cv.GaussianBlur(img_or_gray, (5, 5), 0)
-    
-    def medianBlur(self,img_or_gray):
-        return cv.medianBlur(img_or_gray,7)
-    
     def canny(self,img_or_gray,p):
-        img_or_gray = cv.GaussianBlur(img_or_gray,(5,5),0)
-        return cv.Canny(img_or_gray,75,p)
-    
+        return cv.Canny(img_or_gray,130,p)
+
     def ex(self,img):
-        kernel = np.ones((7,7),np.uint8)
+        kernel = np.ones((5,5),np.uint8)
         opening = cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
         return opening
     
-    def houghCirlce(self,img):
-        img = self.cli(img)
-        test_print(self.is_brightness(img))
-        canny = self.canny(self.ex(img), self.cannyP)
-      
+    def find_green_area(self,img):
+        hsv = cv.cvtColor(img,cv.COLOR_BGR2HSV)
+        mask = cv.inRange(hsv, (36, 25, 25), (36, 255,255))
+        imask = mask>0
+        green = np.zeros_like(img, np.uint8)
+        green[imask] = img[imask]
+        return green
         
+    def houghCircle(self,img):
+        img2 = self.find_green_area(img)
+        hsv = cv.cvtColor(img,cv.COLOR_BGR2HSV)
+        cv.imshow('green',hsv)
+        cli = self.cli(img)
+        ex = self.ex(cli)
+        canny = self.canny(ex,can_low)
         if(testing == True):
-            cv.imshow('canny',canny)
-        # if(self.tempFrame == 0): #!!!
-        cnt = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, 1, 18, param1=12, #!!!
+            cv.imshow('cany',canny)
+        cnt = cv.HoughCircles((canny-130)*100, cv.HOUGH_GRADIENT, 1, 15, param1=12, #!!!
                       param2=15, minRadius=6, maxRadius=16) #!!!
-        # else:
-        #     canny2 = self.canny(self.ex(self.tempFrame)) #!!!
-        #     cnt = cv.HoughCircles(canny+canny2, cv.HOUGH_GRADIENT, 1, 15, param1=10, #!!!
-        #                       param2=15, minRadius=5, maxRadius=18)
-        return cnt     
-    def processing(self):
-        for i in self._img_list:
-            cnt = self.houghCirlce(i)
-            self.cnt.append(cnt)
-    def start(self):
-        self.processing()
+        self.cnt = cnt
+
+        
+   
 class PatternMatcher:
     def __init__(self,img_pretreatmenter):
         self.R = 0
-        self.img_pretreatmenter = img_pretreatmenter
-        self.start_time = self.img_pretreatmenter.start_time
+        self.start_time = img_pretreatmenter.start_time
         self.end_time = time.process_time()
         self.finish_time = 'Process Time:' + str((self.end_time - self.start_time) * 1000) + 'ms'
-        self.cnt = img_pretreatmenter.cnt 
-        self._img_list = img_pretreatmenter._img_list
-        self.cluster = img_pretreatmenter.cluster
+        self.cnt = img_pretreatmenter.cnt
+        self.circles = img_pretreatmenter.cnt[0]
+        self._img = img_pretreatmenter.frame
         self.start()
+        
     def kmeans(self,data,cluster):
         # if (len(data) == 2):
         #     cluster = 2
@@ -231,13 +158,13 @@ class PatternMatcher:
         return result   
              
     def draw_pips(self,img):
-        test_print(self.cnt[0])
-        if(self.cnt[0] is None):
+        test_print(self.cnt)
+        if(self.cnt is None):
             return 0
         else:
             total = 0
-            self.R = self.cnt[0][0][:,2]
-            for i,circles in enumerate(self.cnt[0]):
+            self.R = self.cnt[0][:,2]
+            for i, circles in enumerate(self.cnt):
                 for j, cp in enumerate(circles):
                     r = np.mean(self.R)
                     test_print(r)
@@ -255,11 +182,9 @@ class PatternMatcher:
         cv.putText(img,self.finish_time,(10,30),cv.FONT_HERSHEY_COMPLEX,0.6,(0,255,0))
         return img
     def show_dices_and_pips(self):
-        if(self.cluster <= 3):
-            res = self.kmeans(self.cnt[0][0], self.cluster)
-            # if(len(self.cnt[0])<6):
-            #     res = self.kn(self.cnt[0],1)
-            # else:
+        if(CLUSTER <= 3):
+            res = self.kmeans(self.circles, CLUSTER)
+           
             index = 0
             res = res.tolist()
             dice_1 = res.count(0)
@@ -271,31 +196,24 @@ class PatternMatcher:
             print('總計有(total)：' + str(dice_1 + dice_2 + dice_3) + '點(point)')
         
     def start(self):
-        if (self.cnt[0] is None):
+        if (self.circles is None):
             print('沒有偵測到任何骰子，請準備好骰子再開始遊玩。(No dice be detected)')
             return
-        if (self.cluster > 3):
+        if (CLUSTER > 3):
              print('第一顆骰子為(first dice)：' + str(2) + '點(point)')
              print('第二顆骰子為(second dice)：' + str(2) + '點(point)')
              print('第三顆骰子為(thrid dice)：' + str(2) + '點(point)')
              print('總計有(total)：' + str(6) + '點(point)')
-             for img in self._img_list:
-                self.draw_pips(img)
-                cv.waitKey(0)
-                cv.destroyAllWindows()
-             cv.waitKey(0)
-             cv.destroyAllWindows() 
+             self.draw_pips(self._img)
+             cv.destroyAllWindows()
+               
         else: 
-            for img in self._img_list:
-                self.draw_pips(img)
-                self.show_dices_and_pips()
-                cv.waitKey(0)
-                cv.destroyAllWindows()
+            self.draw_pips(self._img)
+            self.show_dices_and_pips()
             cv.waitKey(0)
             cv.destroyAllWindows()
+           
     
 if __name__ == '__main__':
-    testing = True
+    testing = False
     video_capturer = VideoCapturer()
-    image_pretreatmenter = ImagePretreatmenter(video_capturer,video_capturer.frames)
-    pattern_matcher = PatternMatcher(image_pretreatmenter)
